@@ -212,6 +212,15 @@ export default function AdminScreen() {
           
           <TouchableOpacity 
             style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/appointments')}
+          >
+            <Ionicons name="calendar" size={24} color={Colors.primary} />
+            <Text style={styles.actionText}>Manage All Appointments</Text>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.actionCard}
             onPress={() => router.push('/staff')}
           >
             <Ionicons name="people" size={24} color={Colors.primary} />
