@@ -24,6 +24,7 @@ interface Offer {
 }
 
 export default function AdminScreen() {
+  const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
