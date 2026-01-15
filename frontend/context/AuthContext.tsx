@@ -10,18 +10,26 @@ interface User {
   role: string;
 }
 
+interface GuestUser {
+  isGuest: true;
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: User | GuestUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  loginAsGuest: (name: string, email: string, phone: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | GuestUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,13 +61,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await AsyncStorage.setItem('user', JSON.stringify(userData));
   };
 
+  const loginAsGuest = async (name: string, email: string, phone: string) => {
+    const guestData: GuestUser = {
+      isGuest: true,
+      name,
+      email,
+      phone,
+    };
+    setUser(guestData);
+    await AsyncStorage.setItem('user', JSON.stringify(guestData));
+  };
+
   const logout = async () => {
     setUser(null);
     await AsyncStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );
