@@ -154,7 +154,10 @@ export default function HomeScreen() {
             <View style={styles.hoursCard}>
               <View style={styles.hoursRow}>
                 <Text style={styles.dayText}>Saturday - Thursday</Text>
-                <Text style={styles.timeText}>9:00 AM - 9:00 PM</Text>
+                <View style={styles.timeColumn}>
+                  <Text style={styles.timeText}>09:00 AM - 12:30 PM</Text>
+                  <Text style={styles.timeText}>04:00 PM - 08:30 PM</Text>
+                </View>
               </View>
               <View style={styles.hoursRow}>
                 <Text style={styles.dayText}>Friday</Text>
