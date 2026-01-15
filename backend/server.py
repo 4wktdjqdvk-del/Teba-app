@@ -104,7 +104,7 @@ async def init_default_data():
                 "specialization": "Oral Surgery & Implantation",
                 "description": "Consultant in Oral Surgery and Dental Implantation",
                 "image": None,
-                "email": "louai@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("doctor123"),
                 "role": "doctor"
             },
@@ -114,7 +114,7 @@ async def init_default_data():
                 "specialization": "Prosthodontics",
                 "description": "Specialist in Crowns, Veneers, and Dentures (Mobile & Fixed)",
                 "image": None,
-                "email": "mona@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("doctor123"),
                 "role": "doctor"
             },
@@ -124,7 +124,7 @@ async def init_default_data():
                 "specialization": "Orthodontics",
                 "description": "Prosthodontist specializing in Orthodontic Treatments",
                 "image": None,
-                "email": "bassem@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("doctor123"),
                 "role": "doctor"
             }
@@ -137,28 +137,28 @@ async def init_default_data():
         staff = [
             {
                 "name": "Nurse 1",
-                "email": "nurse1@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("nurse123"),
                 "role": "nurse",
                 "phone": None
             },
             {
                 "name": "Nurse 2",
-                "email": "nurse2@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("nurse123"),
                 "role": "nurse",
                 "phone": None
             },
             {
                 "name": "Nurse 3",
-                "email": "nurse3@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("nurse123"),
                 "role": "nurse",
                 "phone": None
             },
             {
                 "name": "Receptionist",
-                "email": "reception@tebadental.com",
+                "email": "teba.s.d.center@gmail.com",
                 "password": hash_password("reception123"),
                 "role": "receptionist",
                 "phone": "66868388"
