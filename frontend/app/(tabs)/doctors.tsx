@@ -78,8 +78,9 @@ export default function DoctorsScreen() {
 
     setLoading(true);
     try {
+      const isGuest = 'isGuest' in user && user.isGuest;
       const appointmentData = {
-        patient_id: user.id,
+        patient_id: isGuest ? 'guest' : user.id,
         patient_name: user.name,
         patient_email: user.email,
         patient_phone: user.phone || '',
@@ -91,7 +92,7 @@ export default function DoctorsScreen() {
       };
 
       await appointmentsAPI.create(appointmentData);
-      Alert.alert('Success', 'Appointment booked successfully!');
+      Alert.alert('Success', 'Appointment booked successfully!\n\nYou will receive a confirmation email at ' + user.email);
       setShowModal(false);
     } catch (error: any) {
       console.error('Error booking appointment:', error);
