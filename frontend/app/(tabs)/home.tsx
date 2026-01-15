@@ -303,4 +303,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
   },
+  timeColumn: {
+    alignItems: 'flex-end',
+  },
 });
