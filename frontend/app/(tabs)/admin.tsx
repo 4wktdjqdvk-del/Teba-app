@@ -183,7 +183,7 @@ export default function AdminScreen() {
           
           <TouchableOpacity 
             style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/admin/staff')}
+            onPress={() => router.push('/staff')}
           >
             <Ionicons name="people" size={24} color={Colors.primary} />
             <Text style={styles.actionText}>Manage Staff</Text>
@@ -192,7 +192,7 @@ export default function AdminScreen() {
 
           <TouchableOpacity 
             style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/admin/analytics')}
+            onPress={() => router.push('/analytics')}
           >
             <Ionicons name="bar-chart" size={24} color={Colors.secondary} />
             <Text style={styles.actionText}>View Analytics</Text>
@@ -201,7 +201,7 @@ export default function AdminScreen() {
 
           <TouchableOpacity 
             style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/admin/settings')}
+            onPress={() => router.push('/settings')}
           >
             <Ionicons name="settings" size={24} color={Colors.primary} />
             <Text style={styles.actionText}>App Settings</Text>
