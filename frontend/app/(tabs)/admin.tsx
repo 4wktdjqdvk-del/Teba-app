@@ -110,6 +110,7 @@ export default function AdminScreen() {
   };
 
   const handleDeleteOffer = (offerId: string) => {
+    console.log('handleDeleteOffer called with:', offerId);
     Alert.alert(
       'Delete Offer',
       'Are you sure you want to delete this offer?',
@@ -120,10 +121,13 @@ export default function AdminScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('Deleting offer:', offerId);
               await offersAPI.delete(offerId);
+              console.log('Offer deleted successfully');
               Alert.alert('Success', 'Offer deleted successfully');
               fetchOffers();
             } catch (error) {
+              console.error('Error deleting offer:', error);
               Alert.alert('Error', 'Failed to delete offer');
             }
           },
