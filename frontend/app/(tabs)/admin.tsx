@@ -181,19 +181,28 @@ export default function AdminScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/admin/staff')}
+          >
             <Ionicons name="people" size={24} color={Colors.primary} />
             <Text style={styles.actionText}>Manage Staff</Text>
             <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/admin/analytics')}
+          >
             <Ionicons name="bar-chart" size={24} color={Colors.secondary} />
             <Text style={styles.actionText}>View Analytics</Text>
             <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/admin/settings')}
+          >
             <Ionicons name="settings" size={24} color={Colors.primary} />
             <Text style={styles.actionText}>App Settings</Text>
             <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
