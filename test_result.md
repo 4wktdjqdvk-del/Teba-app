@@ -164,6 +164,33 @@ backend:
       - working: true
         agent: "testing"
         comment: "Offers API working correctly. GET empty offers list (✅), POST create new offer (✅), GET offers with data (✅). All CRUD operations functioning properly."
+      - working: true
+        agent: "testing"
+        comment: "User-requested specific testing completed successfully. Arabic offer creation (تخفيض الصيف) (✅), offer retrieval (✅), offer deletion (✅), deletion verification (✅). Full CRUD cycle working perfectly."
+
+  - task: "Staff Management API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Staff API working correctly. GET /api/staff returns all 7 staff members (3 doctors, 3 nurses, 1 receptionist). All staff now have correct email: teba.s.d.center@gmail.com as requested. Email verification (✅)."
+
+  - task: "Staff Authentication with New Email"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Staff login with teba.s.d.center@gmail.com working correctly. Login system finds first user with matching email (Nurse 1) and authenticates with nurse123 password (✅). Login behavior is correct - multiple users share same email but have different passwords based on roles."
 
 frontend:
   - task: "Frontend Testing"
