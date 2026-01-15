@@ -400,6 +400,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     marginLeft: 8,
+    flex: 1,
+  },
+  deleteButton: {
+    padding: 8,
+    marginLeft: 'auto',
   },
   offerDescription: {
     fontSize: 14,
