@@ -9,9 +9,9 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../../constants/Colors';
+import { Colors } from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { appointmentsAPI } from '../../../utils/api';
+import { appointmentsAPI } from '../utils/api';
 
 const { width } = Dimensions.get('window');
 
