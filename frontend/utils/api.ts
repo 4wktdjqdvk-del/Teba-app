@@ -78,6 +78,11 @@ export const offersAPI = {
     const response = await api.post('/offers', data);
     return response.data;
   },
+  
+  delete: async (offerId: string) => {
+    const response = await api.delete(`/offers/${offerId}`);
+    return response.data;
+  },
 };
 
 export default api;
