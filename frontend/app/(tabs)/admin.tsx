@@ -109,6 +109,29 @@ export default function AdminScreen() {
     }
   };
 
+  const handleDeleteOffer = (offerId: string) => {
+    Alert.alert(
+      'Delete Offer',
+      'Are you sure you want to delete this offer?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await offersAPI.delete(offerId);
+              Alert.alert('Success', 'Offer deleted successfully');
+              fetchOffers();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete offer');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
