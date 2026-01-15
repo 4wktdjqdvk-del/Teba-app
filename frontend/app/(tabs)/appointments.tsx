@@ -62,6 +62,7 @@ export default function AppointmentsScreen() {
   };
 
   const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
+    console.log('handleStatusUpdate called:', appointmentId, newStatus);
     Alert.alert(
       'Update Status',
       `Change appointment status to "${newStatus}"?`,
@@ -71,10 +72,13 @@ export default function AppointmentsScreen() {
           text: 'Confirm',
           onPress: async () => {
             try {
+              console.log('Updating status...');
               await appointmentsAPI.updateStatus(appointmentId, newStatus);
+              console.log('Status updated successfully');
               Alert.alert('Success', 'Appointment status updated');
               fetchAppointments();
             } catch (error) {
+              console.error('Error updating status:', error);
               Alert.alert('Error', 'Failed to update status');
             }
           },
