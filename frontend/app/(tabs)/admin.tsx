@@ -165,6 +165,12 @@ export default function AdminScreen() {
                 <View style={styles.offerHeader}>
                   <Ionicons name="pricetag" size={20} color={Colors.secondary} />
                   <Text style={styles.offerTitle}>{offer.title}</Text>
+                  <TouchableOpacity 
+                    onPress={() => handleDeleteOffer(offer.id)}
+                    style={styles.deleteButton}
+                  >
+                    <Ionicons name="trash" size={18} color={Colors.error} />
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.offerDescription}>{offer.description}</Text>
                 <View style={styles.offerFooter}>
