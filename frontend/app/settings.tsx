@@ -1,4 +1,313 @@
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  Share,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Colors } from '../constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
+import { saveLanguage } from '../i18n/config';
+import { appointmentsAPI, doctorsAPI } from '../utils/api';
+
+export default function SettingsScreen() {
+  const router = useRouter();
+  const { theme, toggleTheme, isDark } = useTheme();
+  const { t, i18n } = useTranslation();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const currentColors = isDark ? require('../constants/Theme').DarkColors : Colors;
+
+  const handleLanguageChange = async (lang: string) => {
+    await saveLanguage(lang);
+    Alert.alert(
+      lang === 'ar' ? 'تم التغيير' : 'Changed',
+      lang === 'ar' ? 'تم تغيير اللغة بنجاح' : 'Language changed successfully'
+    );
+  };
+
+  const handleBackupData = async () => {
+    Alert.alert(
+      t('settings.backupData'),
+      'Do you want to export clinic data?',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          onPress: async () => {
+            setIsExporting(true);
+            try {
+              // Get all data
+              const appointments = await appointmentsAPI.getAll();
+              const doctors = await doctorsAPI.getAll();
+              
+              const backupData = {
+                exportDate: new Date().toISOString(),
+                appointments,
+                doctors,
+                clinic: {
+                  name: 'TEBA SPECIALIZED DENTAL CENTER',
+                  email: 'teba.s.d.center@gmail.com',
+                },
+              };
+              
+              const jsonData = JSON.stringify(backupData, null, 2);
+              
+              // Share the data
+              await Share.share({
+                message: jsonData,
+                title: 'TEBA Dental Center Backup',
+              });
+              
+              Alert.alert(t('common.success'), 'Data exported successfully');
+            } catch (error) {
+              console.error('Error exporting data:', error);
+              Alert.alert(t('common.error'), 'Failed to export data');
+            } finally {
+              setIsExporting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <View style={[styles.header, { backgroundColor: currentColors.primary }]}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name=\"arrow-back\" size={24} color={currentColors.white} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: currentColors.white }]}>{t('settings.title')}</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+            {t('settings.clinicInfo')}
+          </Text>
+          
+          <TouchableOpacity style={[styles.settingCard, { backgroundColor: currentColors.card }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"business\" size={24} color={currentColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.clinicDetails')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  Name, address, contact info
+                </Text>
+              </View>
+            </View>
+            <Ionicons name=\"chevron-forward\" size={20} color={currentColors.textLight} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.settingCard, { backgroundColor: currentColors.card }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"time\" size={24} color={currentColors.secondary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.workingHours')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  Set clinic operating hours
+                </Text>
+              </View>
+            </View>
+            <Ionicons name=\"chevron-forward\" size={20} color={currentColors.textLight} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+            {t('settings.notifications')}
+          </Text>
+          
+          <View style={[styles.settingCard, { backgroundColor: currentColors.card }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"notifications\" size={24} color={currentColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.pushNotifications')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  Receive app notifications
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: currentColors.border, true: currentColors.primary }}
+              thumbColor={currentColors.white}
+            />
+          </View>
+
+          <View style={[styles.settingCard, { backgroundColor: currentColors.card }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"mail\" size={24} color={currentColors.secondary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.emailNotifications')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  Send appointment emails
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={emailNotifications}
+              onValueChange={setEmailNotifications}
+              trackColor={{ false: currentColors.border, true: currentColors.primary }}
+              thumbColor={currentColors.white}
+            />
+          </View>
+
+          <View style={[styles.settingCard, { backgroundColor: currentColors.card }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"chatbubbles\" size={24} color={currentColors.success} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.smsNotifications')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  Send appointment SMS
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={smsNotifications}
+              onValueChange={setSmsNotifications}
+              trackColor={{ false: currentColors.border, true: currentColors.primary }}
+              thumbColor={currentColors.white}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentColors.text }]}>System</Text>
+          
+          <TouchableOpacity 
+            style={[styles.settingCard, { backgroundColor: currentColors.card }]}
+            onPress={() => {
+              Alert.alert(
+                t('settings.language'),
+                'Select Language / اختر اللغة',
+                [
+                  { text: 'Cancel / إلغاء', style: 'cancel' },
+                  {
+                    text: 'English',
+                    onPress: () => handleLanguageChange('en'),
+                  },
+                  {
+                    text: 'العربية',
+                    onPress: () => handleLanguageChange('ar'),
+                  },
+                ]
+              );
+            }}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"language\" size={24} color={currentColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.language')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  {i18n.language === 'ar' ? 'العربية' : 'English'}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name=\"chevron-forward\" size={20} color={currentColors.textLight} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.settingCard, { backgroundColor: currentColors.card }]}
+            onPress={toggleTheme}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name={isDark ? \"sunny\" : \"moon\"} size={24} color={currentColors.secondary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.darkMode')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  {isDark ? 'Dark' : 'Light'} mode
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: currentColors.border, true: currentColors.primary }}
+              thumbColor={currentColors.white}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.settingCard, { backgroundColor: currentColors.card }]}
+            onPress={handleBackupData}
+            disabled={isExporting}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: currentColors.background }]}>
+                <Ionicons name=\"download\" size={24} color={currentColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, { color: currentColors.text }]}>
+                  {t('settings.backupData')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentColors.textLight }]}>
+                  {isExporting ? 'Exporting...' : t('settings.exportData')}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name=\"chevron-forward\" size={20} color={currentColors.textLight} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentColors.text }]}>About</Text>
+          
+          <View style={[styles.infoCard, { backgroundColor: currentColors.card }]}>
+            <Text style={[styles.infoLabel, { color: currentColors.textLight }]}>App Version</Text>
+            <Text style={[styles.infoValue, { color: currentColors.text }]}>1.0.0</Text>
+          </View>
+
+          <View style={[styles.infoCard, { backgroundColor: currentColors.card }]}>
+            <Text style={[styles.infoLabel, { color: currentColors.textLight }]}>Last Updated</Text>
+            <Text style={[styles.infoValue, { color: currentColors.text }]}>January 2026</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 import {
   View,
   Text,
