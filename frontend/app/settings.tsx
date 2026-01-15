@@ -86,7 +86,7 @@ export default function SettingsScreen() {
     <View style={[styles.container, { backgroundColor: currentColors.background }]}>
       <View style={[styles.header, { backgroundColor: currentColors.primary }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name=\"arrow-back\" size={24} color={currentColors.white} />
+          <Ionicons name="arrow-back" size={24} color={currentColors.white} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentColors.white }]}>{t('settings.title')}</Text>
         <View style={styles.placeholder} />
