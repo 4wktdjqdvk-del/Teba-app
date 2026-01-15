@@ -50,13 +50,6 @@
           "resizeMode": "contain",
           "backgroundColor": "#0891B2"
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#0891B2"
-        }
       ]
     ],
     "experiments": {
