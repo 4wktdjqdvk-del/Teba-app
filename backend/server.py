@@ -367,6 +367,15 @@ async def create_offer(offer: OfferCreate):
     
     return OfferResponse(**offer_dict)
 
+@api_router.delete("/offers/{offer_id}")
+async def delete_offer(offer_id: str):
+    result = await db.offers.delete_one({"_id": ObjectId(offer_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    
+    return {"message": "Offer deleted successfully"}
+
 # Clinic Info
 @api_router.get("/clinic-info")
 async def get_clinic_info():
