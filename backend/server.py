@@ -393,6 +393,81 @@ async def get_clinic_info():
         "description": "The best dental clinic in Doha, Qatar. Specialized in oral surgery, implantation, prosthodontics, and orthodontics."
     }
 
+# Staff Management APIs
+@api_router.get("/staff")
+async def get_all_staff():
+    # Get all doctors
+    doctors = await db.doctors.find().to_list(100)
+    # Get all nurses and receptionist
+    staff = await db.users.find({"role": {"$in": ["nurse", "receptionist"]}}).to_list(100)
+    
+    all_staff = []
+    
+    # Add doctors
+    for doc in doctors:
+        all_staff.append({
+            "id": str(doc["_id"]),
+            "name": doc["name"],
+            "email": doc["email"],
+            "role": doc["role"],
+            "phone": doc.get("phone"),
+            "specialization": doc.get("specialization")
+        })
+    
+    # Add other staff
+    for s in staff:
+        all_staff.append({
+            "id": str(s["_id"]),
+            "name": s["name"],
+            "email": s["email"],
+            "role": s["role"],
+            "phone": s.get("phone")
+        })
+    
+    return all_staff
+
+@api_router.put("/staff/doctor/{doctor_id}")
+async def update_doctor(doctor_id: str, name: str, specialization: str, phone: str = None):
+    result = await db.doctors.update_one(
+        {"_id": doctor_id},
+        {"$set": {"name": name, "specialization": specialization, "phone": phone}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    
+    return {"message": "Doctor updated successfully"}
+
+@api_router.put("/staff/user/{user_id}")
+async def update_staff_user(user_id: str, name: str, phone: str = None):
+    result = await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"name": name, "phone": phone}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Staff member not found")
+    
+    return {"message": "Staff member updated successfully"}
+
+@api_router.delete("/staff/doctor/{doctor_id}")
+async def delete_doctor(doctor_id: str):
+    result = await db.doctors.delete_one({"_id": doctor_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    
+    return {"message": "Doctor deleted successfully"}
+
+@api_router.delete("/staff/user/{user_id}")
+async def delete_staff_user(user_id: str):
+    result = await db.users.delete_one({"_id": ObjectId(user_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Staff member not found")
+    
+    return {"message": "Staff member deleted successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
