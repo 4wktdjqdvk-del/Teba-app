@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,23 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { appointmentsAPI } from '../../utils/api';
+
+interface Appointment {
+  id: string;
+  patient_name: string;
+  doctor_name: string;
+  date: string;
+  time: string;
+  status: string;
+}
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -19,6 +30,40 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const router = useRouter();
+  
+  const isGuest = user && 'isGuest' in user && user.isGuest === true;
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isGuest && user?.email) {
+      fetchGuestAppointments();
+    }
+  }, [user]);
+
+  const fetchGuestAppointments = async () => {
+    if (!user?.email) return;
+    setLoading(true);
+    try {
+      // Fetch appointments by guest email
+      const allAppointments = await appointmentsAPI.getAll();
+      const guestAppointments = allAppointments.filter(
+        (apt: any) => apt.patient_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      setAppointments(guestAppointments);
+    } catch (error) {
+      console.error('Error fetching guest appointments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchGuestAppointments();
+    setRefreshing(false);
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -30,12 +75,39 @@ export default function ProfileScreen() {
           text: t('common.logout'),
           style: 'destructive',
           onPress: async () => {
-            await logout();
-            router.replace('/(auth)/login');
+            try {
+              await logout();
+              router.replace('/(auth)/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              // Force navigation even if logout fails
+              router.replace('/(auth)/login');
+            }
           },
         },
       ]
     );
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return '#F59E0B';
+      case 'confirmed': return colors.primary;
+      case 'completed': return colors.success;
+      case 'cancelled': return colors.error;
+      default: return colors.textLight;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    if (!isRTL) return status;
+    switch (status) {
+      case 'pending': return 'قيد الانتظار';
+      case 'confirmed': return 'مؤكد';
+      case 'completed': return 'مكتمل';
+      case 'cancelled': return 'ملغي';
+      default: return status;
+    }
   };
 
   const styles = StyleSheet.create({
@@ -165,25 +237,71 @@ export default function ProfileScreen() {
       fontSize: 12,
       marginTop: 20,
     },
-    settingsButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      backgroundColor: colors.primary,
-      padding: 16,
+    appointmentCard: {
+      backgroundColor: colors.card,
       borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
+      padding: 16,
       marginBottom: 12,
     },
-    settingsText: {
-      color: colors.white,
+    appointmentHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    appointmentDate: {
       fontSize: 16,
       fontWeight: 'bold',
+      color: colors.text,
+    },
+    statusBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 10,
+    },
+    statusText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    appointmentInfo: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    appointmentText: {
+      fontSize: 14,
+      color: colors.textLight,
       marginLeft: isRTL ? 0 : 8,
       marginRight: isRTL ? 8 : 0,
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      padding: 30,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginTop: 12,
+      textAlign: 'center',
+    },
+    guestNote: {
+      backgroundColor: colors.primary + '20',
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 16,
+    },
+    guestNoteText: {
+      fontSize: 14,
+      color: colors.primary,
+      textAlign: 'center',
     },
   });
 
   const getRoleText = () => {
+    if (isGuest) return isRTL ? 'زائر' : 'Guest';
     if (!isRTL) return user?.role?.toUpperCase();
     switch (user?.role) {
       case 'admin': return 'مدير';
@@ -191,11 +309,80 @@ export default function ProfileScreen() {
       case 'nurse': return 'ممرض/ة';
       case 'receptionist': return 'موظف استقبال';
       case 'patient': return 'مريض';
-      case 'guest': return 'ضيف';
       default: return user?.role;
     }
   };
 
+  // Guest Profile View
+  if (isGuest) {
+    return (
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person-circle" size={100} color={colors.primary} />
+          </View>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('profile.myAppointments')}</Text>
+          
+          {loading ? (
+            <Text style={[styles.emptyText, { textAlign: 'center' }]}>{t('common.loading')}</Text>
+          ) : appointments.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="calendar-outline" size={50} color={colors.textLight} />
+              <Text style={styles.emptyText}>
+                {isRTL ? 'لا توجد مواعيد سابقة' : 'No previous appointments'}
+              </Text>
+            </View>
+          ) : (
+            appointments.map((apt) => (
+              <View key={apt.id} style={styles.appointmentCard}>
+                <View style={styles.appointmentHeader}>
+                  <Text style={styles.appointmentDate}>{apt.date}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(apt.status) }]}>
+                    <Text style={styles.statusText}>{getStatusText(apt.status)}</Text>
+                  </View>
+                </View>
+                <View style={styles.appointmentInfo}>
+                  <Ionicons name="time" size={16} color={colors.textLight} />
+                  <Text style={styles.appointmentText}>{apt.time}</Text>
+                </View>
+                <View style={styles.appointmentInfo}>
+                  <Ionicons name="medkit" size={16} color={colors.textLight} />
+                  <Text style={styles.appointmentText}>{isRTL ? 'د.' : 'Dr.'} {apt.doctor_name}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.guestNote}>
+          <Text style={styles.guestNoteText}>
+            {isRTL 
+              ? 'سجل حساباً للاحتفاظ بمواعيدك وتتبعها بسهولة'
+              : 'Create an account to easily track and manage your appointments'
+            }
+          </Text>
+        </View>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out" size={20} color={colors.white} />
+          <Text style={styles.logoutText}>{t('common.logout')}</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.version}>{t('profile.version')} 1.0.0</Text>
+      </ScrollView>
+    );
+  }
+
+  // Regular User Profile View
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
