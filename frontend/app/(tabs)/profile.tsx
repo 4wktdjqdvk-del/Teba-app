@@ -67,28 +67,19 @@ export default function ProfileScreen() {
     setRefreshing(false);
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      t('common.logout'),
-      isRTL ? 'هل أنت متأكد من تسجيل الخروج؟' : 'Are you sure you want to logout?',
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.logout'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace('/(auth)/login');
-            } catch (error) {
-              console.error('Logout error:', error);
-              // Force navigation even if logout fails
-              router.replace('/(auth)/login');
-            }
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await logout();
+      setShowLogoutDialog(false);
+      router.replace('/(auth)/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigation even if logout fails
+      router.replace('/(auth)/login');
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
