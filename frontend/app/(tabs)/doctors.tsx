@@ -247,6 +247,23 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginBottom: 20,
   },
+  instructionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  instructionText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    marginLeft: 12,
+    lineHeight: 20,
+  },
   doctorCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
