@@ -53,7 +53,15 @@ export default function TabLayout() {
         />
       )}
 
-      {(user?.role === 'patient' || isDoctor || isNurse || isReceptionist) && (\n        <Tabs.Screen\n          name="appointments"\n          options={{\n            title: 'Appointments',\n            tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,\n          }}\n        />\n      )}
+      {(user?.role === 'patient' || isDoctor || isNurse || isReceptionist) && (
+        <Tabs.Screen
+          name="appointments"
+          options={{
+            title: 'Appointments',
+            tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          }}
+        />
+      )}
 
       {isAdmin && (
         <Tabs.Screen
