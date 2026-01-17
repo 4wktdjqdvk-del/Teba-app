@@ -323,8 +323,8 @@ async def create_appointment(appointment: AppointmentCreate, background_tasks: B
 
 @api_router.get("/appointments/patient/{patient_id}", response_model=List[AppointmentResponse])
 async def get_patient_appointments(patient_id: str):
-    # Sort by date descending for better UX
-    appointments = await db.appointments.find({"patient_id": patient_id}).sort("created_at", -1).to_list(100)
+    # Sort by date descending for better UX with proper limit
+    appointments = await db.appointments.find({"patient_id": patient_id}).sort("created_at", -1).limit(100).to_list(100)
     return [
         AppointmentResponse(
             id=str(apt["_id"]),
