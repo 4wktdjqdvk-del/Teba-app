@@ -15,7 +15,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Modal from 'react-native-modal';
-import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -31,9 +30,25 @@ export default function LoginScreen() {
   const isRTL = i18n.language === 'ar';
   const router = useRouter();
 
+  // Error dialog state
+  const [errorDialog, setErrorDialog] = useState({
+    visible: false,
+    title: '',
+    message: '',
+  });
+
+  const showError = (title: string, message: string) => {
+    setErrorDialog({ visible: true, title, message });
+  };
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(newLang);
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
+      showError(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
       return;
     }
 
@@ -42,7 +57,7 @@ export default function LoginScreen() {
       await login(email.toLowerCase().trim(), password);
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert(
+      showError(
         isRTL ? 'فشل تسجيل الدخول' : 'Login Failed', 
         error.response?.data?.detail || (isRTL ? 'بيانات غير صحيحة' : 'Invalid credentials')
       );
@@ -53,7 +68,7 @@ export default function LoginScreen() {
 
   const handleGuestLogin = async () => {
     if (!guestName || !guestEmail || !guestPhone) {
-      Alert.alert(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
+      showError(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
       return;
     }
 
@@ -63,7 +78,7 @@ export default function LoginScreen() {
       setShowGuestModal(false);
       router.replace('/(tabs)/home');
     } catch (error) {
-      Alert.alert(t('common.error'), isRTL ? 'فشل المتابعة كضيف' : 'Failed to continue as guest');
+      showError(t('common.error'), isRTL ? 'فشل المتابعة كضيف' : 'Failed to continue as guest');
     } finally {
       setLoading(false);
     }
@@ -78,6 +93,26 @@ export default function LoginScreen() {
       flexGrow: 1,
       padding: 20,
       justifyContent: 'center',
+    },
+    languageButton: {
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 25,
+      borderWidth: 1,
+      borderColor: colors.border,
+      zIndex: 10,
+    },
+    languageText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primary,
+      marginLeft: 6,
     },
     header: {
       alignItems: 'center',
@@ -235,6 +270,48 @@ export default function LoginScreen() {
       fontSize: 16,
       fontWeight: 'bold',
     },
+    // Error dialog styles
+    errorModal: {
+      margin: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '100%',
+      maxWidth: 320,
+      alignItems: 'center',
+    },
+    errorIcon: {
+      marginBottom: 16,
+    },
+    errorTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    errorMessage: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginBottom: 20,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    errorButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 40,
+      borderRadius: 10,
+    },
+    errorButtonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: '600',
+    },
   });
 
   return (
@@ -242,6 +319,14 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      {/* Language Toggle Button */}
+      <TouchableOpacity style={styles.languageButton} onPress={toggleLanguage}>
+        <Ionicons name="language" size={20} color={colors.primary} />
+        <Text style={styles.languageText}>
+          {i18n.language === 'ar' ? 'English' : 'عربي'}
+        </Text>
+      </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Ionicons name="medical" size={80} color={colors.primary} />
@@ -306,6 +391,7 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
 
+      {/* Guest Modal */}
       <Modal
         isVisible={showGuestModal}
         onBackdropPress={() => !loading && setShowGuestModal(false)}
@@ -374,6 +460,30 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* Error Dialog */}
+      <Modal
+        isVisible={errorDialog.visible}
+        onBackdropPress={() => setErrorDialog({ ...errorDialog, visible: false })}
+        style={styles.errorModal}
+      >
+        <View style={styles.errorContainer}>
+          <Ionicons 
+            name="alert-circle" 
+            size={50} 
+            color={colors.error}
+            style={styles.errorIcon}
+          />
+          <Text style={styles.errorTitle}>{errorDialog.title}</Text>
+          <Text style={styles.errorMessage}>{errorDialog.message}</Text>
+          <TouchableOpacity
+            style={styles.errorButton}
+            onPress={() => setErrorDialog({ ...errorDialog, visible: false })}
+          >
+            <Text style={styles.errorButtonText}>{isRTL ? 'حسناً' : 'OK'}</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </KeyboardAvoidingView>
