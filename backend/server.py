@@ -442,7 +442,7 @@ async def delete_offer(offer_id: str):
 @api_router.get("/clinic-info")
 async def get_clinic_info():
     return {
-        "name": "TAIBA SPECIALIZED DENTAL CENTER",
+        "name": "TEBA SPECIALIZED DENTAL CENTER",
         "name_ar": "مجمع طيبة التخصصي للأسنان",
         "address": "6GM2+RRV, Abu Hamour, Doha, Qatar",
         "address_ar": "أبو هامور، الدوحة، قطر",
