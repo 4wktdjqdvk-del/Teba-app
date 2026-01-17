@@ -21,13 +21,6 @@ i18n
     compatibilityJSON: 'v3',
   });
 
-// Load saved language
-AsyncStorage.getItem(LANGUAGE_KEY).then((savedLanguage) => {
-  if (savedLanguage) {
-    i18n.changeLanguage(savedLanguage);
-  }
-});
-
 // Save language preference
 export const saveLanguage = async (language: string) => {
   try {
@@ -35,6 +28,18 @@ export const saveLanguage = async (language: string) => {
     await i18n.changeLanguage(language);
   } catch (error) {
     console.error('Error saving language:', error);
+  }
+};
+
+// Load saved language (call this from a component, not at module level)
+export const loadSavedLanguage = async () => {
+  try {
+    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
+    if (savedLanguage) {
+      await i18n.changeLanguage(savedLanguage);
+    }
+  } catch (error) {
+    console.error('Error loading language:', error);
   }
 };
 
