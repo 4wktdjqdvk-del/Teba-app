@@ -122,13 +122,6 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.staffInfo}>
-          <Text style={styles.staffTitle}>Staff Login Credentials:</Text>
-          <Text style={styles.staffText}>Email: teba.s.d.center@gmail.com</Text>
-          <Text style={styles.staffText}>Doctor: doctor123 | Nurse: nurse123 | Reception: reception123</Text>
-          <Text style={styles.staffText}>Admin: admin@tebadental.com / admin123</Text>
-        </View>
       </ScrollView>
 
       <Modal
