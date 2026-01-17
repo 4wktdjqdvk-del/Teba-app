@@ -118,6 +118,13 @@ export default function DoctorsScreen() {
         <Text style={styles.title}>Our Specialists</Text>
         <Text style={styles.subtitle}>Book an appointment with our expert doctors</Text>
 
+        <View style={styles.instructionCard}>
+          <Ionicons name="information-circle" size={24} color={Colors.primary} />
+          <Text style={styles.instructionText}>
+            اختر الطبيب المناسب لك واضغط على "Book Appointment" لحجز موعد
+          </Text>
+        </View>
+
         {doctors.map((doctor) => (
           <View key={doctor.id} style={styles.doctorCard}>
             <View style={styles.doctorIconContainer}>
