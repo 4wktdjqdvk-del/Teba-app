@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "TEBA DENTAL CENTER",
+    "appName": "TAIBA SPECIALIZED DENTAL CENTER",
     "welcome": "Welcome",
     "login": "Login",
     "register": "Register",
@@ -51,6 +51,7 @@
     "title": "My Appointments",
     "manageTitle": "Manage Appointments",
     "noAppointments": "No appointments yet",
+    "myPreviousAppointments": "My Previous Appointments",
     "date": "Date",
     "time": "Time",
     "doctor": "Doctor",
@@ -88,7 +89,9 @@
     "about": "About App",
     "help": "Help & Support",
     "terms": "Terms & Privacy",
-    "version": "Version"
+    "version": "Version",
+    "myAppointments": "My Previous Appointments",
+    "guestNote": "Login to save your appointments"
   },
   "staff": {
     "title": "Manage Staff",

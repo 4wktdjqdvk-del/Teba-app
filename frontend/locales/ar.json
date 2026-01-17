@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "مركز تيبا لطب الأسنان",
+    "appName": "مجمع طيبة التخصصي للأسنان",
     "welcome": "مرحباً",
     "login": "تسجيل الدخول",
     "register": "تسجيل جديد",
@@ -24,11 +24,11 @@
     "doctors": "الأطباء",
     "appointments": "المواعيد",
     "admin": "الإدارة",
-    "profile": "الملف الشخصي"
+    "profile": "حسابي"
   },
   "home": {
     "tagline": "ابتسامتك، أولويتنا",
-    "aboutUs": "عن العيادة",
+    "aboutUs": "عن المجمع",
     "ourSpecialists": "أطباؤنا المتخصصون",
     "contactInfo": "معلومات الاتصال",
     "followUs": "تابعنا",
@@ -51,6 +51,7 @@
     "title": "مواعيدي",
     "manageTitle": "إدارة المواعيد",
     "noAppointments": "لا توجد مواعيد بعد",
+    "myPreviousAppointments": "مواعيدي السابقة",
     "date": "التاريخ",
     "time": "الوقت",
     "doctor": "الطبيب",
@@ -88,7 +89,9 @@
     "about": "عن التطبيق",
     "help": "المساعدة والدعم",
     "terms": "الشروط والخصوصية",
-    "version": "الإصدار"
+    "version": "الإصدار",
+    "myAppointments": "مواعيدي السابقة",
+    "guestNote": "سجل دخولك لحفظ مواعيدك"
   },
   "staff": {
     "title": "إدارة الموظفين",
@@ -102,8 +105,8 @@
   },
   "settings": {
     "title": "إعدادات التطبيق",
-    "clinicInfo": "معلومات العيادة",
-    "clinicDetails": "تفاصيل العيادة",
+    "clinicInfo": "معلومات المجمع",
+    "clinicDetails": "تفاصيل المجمع",
     "workingHours": "أوقات العمل",
     "gallery": "المعرض",
     "notifications": "الإشعارات",
@@ -113,6 +116,6 @@
     "language": "اللغة",
     "darkMode": "الوضع الليلي",
     "backupData": "نسخ احتياطي",
-    "exportData": "تصدير بيانات العيادة"
+    "exportData": "تصدير بيانات المجمع"
   }
 }
