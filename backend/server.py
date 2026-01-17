@@ -411,7 +411,8 @@ async def delete_appointment(appointment_id: str):
 # Offers Routes
 @api_router.get("/offers", response_model=List[OfferResponse])
 async def get_offers():
-    offers = await db.offers.find().to_list(100)
+    # Sort by creation date descending
+    offers = await db.offers.find().sort("created_at", -1).to_list(100)
     return [
         OfferResponse(
             id=str(offer["_id"]),
