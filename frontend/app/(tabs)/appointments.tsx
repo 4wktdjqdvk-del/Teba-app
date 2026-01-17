@@ -6,13 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { appointmentsAPI } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface Appointment {
   id: string;
@@ -36,6 +37,18 @@ export default function AppointmentsScreen() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    confirmColor: '',
+    appointmentId: '',
+    action: '' as 'confirm' | 'cancel' | 'complete' | 'delete',
+  });
 
   useEffect(() => {
     fetchAppointments();
@@ -54,7 +67,6 @@ export default function AppointmentsScreen() {
       setAppointments(data || []);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      Alert.alert(t('common.error'), isRTL ? 'فشل تحميل المواعيد' : 'Failed to load appointments');
     } finally {
       setLoading(false);
     }
@@ -66,54 +78,89 @@ export default function AppointmentsScreen() {
     setRefreshing(false);
   };
 
-  const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
-    const statusText = isRTL 
-      ? (newStatus === 'confirmed' ? 'مؤكد' : newStatus === 'cancelled' ? 'ملغي' : 'مكتمل')
-      : newStatus;
-    
-    Alert.alert(
-      isRTL ? 'تحديث الحالة' : 'Update Status',
-      isRTL ? `تغيير حالة الموعد إلى "${statusText}"؟` : `Change appointment status to "${newStatus}"?`,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.confirm'),
-          onPress: async () => {
-            try {
-              await appointmentsAPI.updateStatus(appointmentId, newStatus);
-              Alert.alert(t('common.success'), isRTL ? 'تم تحديث حالة الموعد' : 'Appointment status updated');
-              fetchAppointments();
-            } catch (error) {
-              console.error('Error updating status:', error);
-              Alert.alert(t('common.error'), isRTL ? 'فشل تحديث الحالة' : 'Failed to update status');
-            }
-          },
-        },
-      ]
-    );
+  const showConfirmDialog = (
+    appointmentId: string, 
+    action: 'confirm' | 'cancel' | 'complete' | 'delete'
+  ) => {
+    let title = '';
+    let message = '';
+    let confirmText = '';
+    let confirmColor = colors.primary;
+
+    switch (action) {
+      case 'confirm':
+        title = isRTL ? 'تأكيد الموعد' : 'Confirm Appointment';
+        message = isRTL 
+          ? 'هل تريد تأكيد هذا الموعد؟' 
+          : 'Do you want to confirm this appointment?';
+        confirmText = isRTL ? 'تأكيد' : 'Confirm';
+        confirmColor = colors.success;
+        break;
+      case 'cancel':
+        title = isRTL ? 'إلغاء الموعد' : 'Cancel Appointment';
+        message = isRTL 
+          ? 'هل أنت متأكد من إلغاء هذا الموعد؟' 
+          : 'Are you sure you want to cancel this appointment?';
+        confirmText = isRTL ? 'إلغاء الموعد' : 'Cancel Appointment';
+        confirmColor = colors.error;
+        break;
+      case 'complete':
+        title = isRTL ? 'إكمال الموعد' : 'Complete Appointment';
+        message = isRTL 
+          ? 'هل تريد تحديد هذا الموعد كمكتمل؟' 
+          : 'Do you want to mark this appointment as completed?';
+        confirmText = isRTL ? 'إكمال' : 'Complete';
+        confirmColor = colors.primary;
+        break;
+      case 'delete':
+        title = isRTL ? 'حذف الموعد' : 'Delete Appointment';
+        message = isRTL 
+          ? 'هل أنت متأكد من حذف هذا الموعد نهائياً؟' 
+          : 'Are you sure you want to permanently delete this appointment?';
+        confirmText = isRTL ? 'حذف' : 'Delete';
+        confirmColor = colors.error;
+        break;
+    }
+
+    setConfirmDialog({
+      visible: true,
+      title,
+      message,
+      confirmText,
+      confirmColor,
+      appointmentId,
+      action,
+    });
   };
 
-  const handleDelete = (appointmentId: string) => {
-    Alert.alert(
-      isRTL ? 'إلغاء الموعد' : 'Cancel Appointment',
-      isRTL ? 'هل أنت متأكد من إلغاء هذا الموعد؟' : 'Are you sure you want to cancel this appointment?',
-      [
-        { text: isRTL ? 'لا' : 'No', style: 'cancel' },
-        {
-          text: isRTL ? 'نعم' : 'Yes',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await appointmentsAPI.delete(appointmentId);
-              Alert.alert(t('common.success'), isRTL ? 'تم إلغاء الموعد' : 'Appointment cancelled');
-              fetchAppointments();
-            } catch (error) {
-              Alert.alert(t('common.error'), isRTL ? 'فشل إلغاء الموعد' : 'Failed to cancel appointment');
-            }
-          },
-        },
-      ]
-    );
+  const handleConfirmAction = async () => {
+    setActionLoading(true);
+    const { appointmentId, action } = confirmDialog;
+
+    try {
+      switch (action) {
+        case 'confirm':
+          await appointmentsAPI.updateStatus(appointmentId, 'confirmed');
+          break;
+        case 'cancel':
+          await appointmentsAPI.updateStatus(appointmentId, 'cancelled');
+          break;
+        case 'complete':
+          await appointmentsAPI.updateStatus(appointmentId, 'completed');
+          break;
+        case 'delete':
+          await appointmentsAPI.delete(appointmentId);
+          break;
+      }
+      
+      // Close dialog and refresh
+      setConfirmDialog({ ...confirmDialog, visible: false });
+      await fetchAppointments();
+    } catch (error) {
+      console.error('Error performing action:', error);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -321,14 +368,14 @@ export default function AppointmentsScreen() {
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, styles.confirmButton]}
-              onPress={() => handleStatusUpdate(appointment.id, 'confirmed')}
+              onPress={() => showConfirmDialog(appointment.id, 'confirm')}
             >
               <Ionicons name="checkmark-circle" size={18} color={colors.white} />
               <Text style={styles.actionButtonText}>{t('appointments.confirmBtn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.rejectButton]}
-              onPress={() => handleStatusUpdate(appointment.id, 'cancelled')}
+              onPress={() => showConfirmDialog(appointment.id, 'cancel')}
             >
               <Ionicons name="close-circle" size={18} color={colors.white} />
               <Text style={styles.actionButtonText}>{t('appointments.cancelBtn')}</Text>
@@ -340,7 +387,7 @@ export default function AppointmentsScreen() {
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, styles.completeButton]}
-              onPress={() => handleStatusUpdate(appointment.id, 'completed')}
+              onPress={() => showConfirmDialog(appointment.id, 'complete')}
             >
               <Ionicons name="checkbox" size={18} color={colors.white} />
               <Text style={styles.actionButtonText}>{t('appointments.complete')}</Text>
@@ -352,7 +399,7 @@ export default function AppointmentsScreen() {
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, styles.cancelButton]}
-              onPress={() => handleDelete(appointment.id)}
+              onPress={() => showConfirmDialog(appointment.id, 'delete')}
             >
               <Ionicons name="trash" size={18} color={colors.white} />
               <Text style={styles.actionButtonText}>{t('appointments.cancelAppointment')}</Text>
@@ -377,7 +424,9 @@ export default function AppointmentsScreen() {
         </Text>
 
         {loading ? (
-          <Text style={styles.emptyText}>{t('common.loading')}</Text>
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         ) : appointments.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={60} color={colors.textLight} />
@@ -387,6 +436,17 @@ export default function AppointmentsScreen() {
           appointments.map(renderAppointmentCard)
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={confirmDialog.visible}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        confirmColor={confirmDialog.confirmColor}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, visible: false })}
+        loading={actionLoading}
+      />
     </View>
   );
 }
