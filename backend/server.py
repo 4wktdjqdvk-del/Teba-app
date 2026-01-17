@@ -237,8 +237,8 @@ async def login(credentials: UserLogin):
 # Doctor Routes
 @api_router.get("/doctors", response_model=List[DoctorInfo])
 async def get_doctors():
-    # Exclude password field for security
-    doctors = await db.doctors.find({}, {'password': 0}).to_list(100)
+    # Exclude password field for security with proper limit
+    doctors = await db.doctors.find({}, {'password': 0}).limit(100).to_list(100)
     return [
         DoctorInfo(
             id=str(doc["_id"]),
