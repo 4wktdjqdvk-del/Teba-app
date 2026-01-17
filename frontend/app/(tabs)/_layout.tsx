@@ -1,10 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const { t } = useTranslation();
 
   // Safe role checks
   const isGuest = user && 'isGuest' in user && user.isGuest === true;
@@ -21,20 +24,20 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textLight,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textLight,
         tabBarStyle: {
-          backgroundColor: Colors.white,
+          backgroundColor: colors.card,
           borderTopWidth: 1,
-          borderTopColor: Colors.border,
+          borderTopColor: colors.border,
           paddingBottom: 5,
           paddingTop: 5,
           height: 60,
         },
         headerStyle: {
-          backgroundColor: Colors.primary,
+          backgroundColor: colors.primary,
         },
-        headerTintColor: Colors.white,
+        headerTintColor: colors.white,
         headerTitleStyle: {
           fontWeight: 'bold',
         },
@@ -43,7 +46,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'الرئيسية',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
@@ -51,7 +54,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="doctors"
         options={{
-          title: 'الأطباء',
+          title: t('tabs.doctors'),
           tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
         }}
       />
@@ -59,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="appointments"
         options={{
-          title: 'المواعيد',
+          title: t('tabs.appointments'),
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
           href: canSeeAppointments ? undefined : null,
         }}
@@ -68,7 +71,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="admin"
         options={{
-          title: 'الإدارة',
+          title: t('tabs.admin'),
           tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
           href: isAdmin ? undefined : null,
         }}
@@ -77,7 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'حسابي',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
