@@ -249,15 +249,74 @@ async def get_doctors():
         for doc in doctors
     ]
 
+# Helper function to send email notification
+async def send_appointment_email(appointment_data: dict):
+    """Send email notification to clinic about new appointment"""
+    try:
+        clinic_email = "teba.s.d.center@gmail.com"
+        
+        # Create email content
+        subject = f"🦷 New Appointment Request - {appointment_data['patient_name']}"
+        
+        body = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #0891B2;">New Appointment Request</h2>
+                
+                <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3>Patient Information:</h3>
+                    <p><strong>Name:</strong> {appointment_data['patient_name']}</p>
+                    <p><strong>Email:</strong> {appointment_data['patient_email']}</p>
+                    <p><strong>Phone:</strong> {appointment_data['patient_phone']}</p>
+                </div>
+                
+                <div style="background-color: #ecfdf5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3>Appointment Details:</h3>
+                    <p><strong>Doctor:</strong> {appointment_data['doctor_name']}</p>
+                    <p><strong>Date:</strong> {appointment_data['date']}</p>
+                    <p><strong>Time:</strong> {appointment_data['time']}</p>
+                    {f"<p><strong>Notes:</strong> {appointment_data['notes']}</p>" if appointment_data.get('notes') else ""}
+                </div>
+                
+                <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
+                    This email was sent automatically from TEBA Dental Center appointment system.
+                </p>
+            </body>
+        </html>
+        """
+        
+        # For now, just log it (email sending requires SMTP setup)
+        logger.info(f"📧 Email notification: New appointment from {appointment_data['patient_name']}")
+        logger.info(f"Would send to: {clinic_email}")
+        
+        # TODO: Add actual SMTP email sending when credentials are available
+        # Example code:
+        # msg = MIMEMultipart('alternative')
+        # msg['Subject'] = subject
+        # msg['From'] = "noreply@tebadental.com"
+        # msg['To'] = clinic_email
+        # msg.attach(MIMEText(body, 'html'))
+        # 
+        # with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        #     server.starttls()
+        #     server.login(smtp_user, smtp_password)
+        #     server.send_message(msg)
+        
+    except Exception as e:
+        logger.error(f"Error sending email: {e}")
+
 # Appointment Routes
 @api_router.post("/appointments", response_model=AppointmentResponse)
-async def create_appointment(appointment: AppointmentCreate):
+async def create_appointment(appointment: AppointmentCreate, background_tasks: BackgroundTasks):
     appointment_dict = appointment.dict()
     appointment_dict["status"] = "pending"
     appointment_dict["created_at"] = datetime.utcnow().isoformat()
     
     result = await db.appointments.insert_one(appointment_dict)
     appointment_dict["id"] = str(result.inserted_id)
+    
+    # Send email notification in background
+    background_tasks.add_task(send_appointment_email, appointment_dict)
     
     return AppointmentResponse(**appointment_dict)
 
