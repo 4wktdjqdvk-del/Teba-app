@@ -365,12 +365,23 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={() => setShowLogoutDialog(true)}>
           <Ionicons name="log-out" size={20} color={colors.white} />
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>{t('profile.version')} 1.0.0</Text>
+
+        <ConfirmDialog
+          visible={showLogoutDialog}
+          title={t('common.logout')}
+          message={isRTL ? 'هل أنت متأكد من تسجيل الخروج؟' : 'Are you sure you want to logout?'}
+          confirmText={t('common.logout')}
+          confirmColor={colors.error}
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutDialog(false)}
+          loading={logoutLoading}
+        />
       </ScrollView>
     );
   }
