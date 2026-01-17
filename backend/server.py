@@ -442,8 +442,10 @@ async def delete_offer(offer_id: str):
 @api_router.get("/clinic-info")
 async def get_clinic_info():
     return {
-        "name": "TEBA SPECIALIZED DENTAL CENTER",
+        "name": "TAIBA SPECIALIZED DENTAL CENTER",
+        "name_ar": "مجمع طيبة التخصصي للأسنان",
         "address": "6GM2+RRV, Abu Hamour, Doha, Qatar",
+        "address_ar": "أبو هامور، الدوحة، قطر",
         "phone": "44163344",
         "fax": "44691699",
         "mobile": "66868388",
@@ -452,7 +454,8 @@ async def get_clinic_info():
         "instagram": "https://www.instagram.com/teba_dental_center/?__pwa=1",
         "facebook": "https://www.facebook.com/teba.dental/",
         "google_maps": "https://share.google/wTB9uO7YXo7f0Zq66",
-        "description": "The best dental clinic in Doha, Qatar. Specialized in oral surgery, implantation, prosthodontics, and orthodontics."
+        "description": "The best dental clinic in Doha, Qatar. Specialized in oral surgery, implantation, prosthodontics, and orthodontics.",
+        "description_ar": "مجمع طيبة التخصصي للأسنان - نقدم أفضل خدمات طب الأسنان بأحدث التقنيات وفريق طبي متخصص. رضاكم هدفنا وابتسامتكم أولويتنا."
     }
 
 # Staff Management APIs
