@@ -279,7 +279,7 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>{t('home.aboutUs')}</Text>
             <Text style={styles.description}>
               {isRTL 
-                ? 'مجمع طيبة التخصصي للأسنان - نقدم أفضل خدمات طب الأسنان بأحدث التقنيات وفريق طبي متخصص. رضاكم هدفنا وابتسامتكم أولويتنا.'
+                ? (clinicInfo.description_ar || 'مجمع طيبة التخصصي للأسنان - نقدم أفضل خدمات طب الأسنان بأحدث التقنيات وفريق طبي متخصص. رضاكم هدفنا وابتسامتكم أولويتنا.')
                 : clinicInfo.description
               }
             </Text>
