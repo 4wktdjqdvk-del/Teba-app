@@ -10,10 +10,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { doctorsAPI, appointmentsAPI } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Modal from 'react-native-modal';
 
@@ -27,6 +28,10 @@ interface Doctor {
 
 export default function DoctorsScreen() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +52,7 @@ export default function DoctorsScreen() {
       setDoctors(data);
     } catch (error) {
       console.error('Error fetching doctors:', error);
-      Alert.alert('Error', 'Failed to load doctors');
+      Alert.alert(t('common.error'), isRTL ? 'فشل تحميل الأطباء' : 'Failed to load doctors');
     }
   };
 
@@ -67,12 +72,12 @@ export default function DoctorsScreen() {
 
   const submitAppointment = async () => {
     if (!selectedTime) {
-      Alert.alert('Error', 'Please enter appointment time');
+      Alert.alert(t('common.error'), isRTL ? 'يرجى إدخال وقت الموعد' : 'Please enter appointment time');
       return;
     }
 
     if (!user) {
-      Alert.alert('Error', 'You must be logged in');
+      Alert.alert(t('common.error'), isRTL ? 'يجب تسجيل الدخول' : 'You must be logged in');
       return;
     }
 
@@ -92,11 +97,16 @@ export default function DoctorsScreen() {
       };
 
       await appointmentsAPI.create(appointmentData);
-      Alert.alert('Success', 'Appointment booked successfully!\n\nYou will receive a confirmation email at ' + user.email);
+      Alert.alert(
+        t('common.success'), 
+        isRTL 
+          ? `تم حجز الموعد بنجاح!\n\nستتلقى رسالة تأكيد على ${user.email}`
+          : `Appointment booked successfully!\n\nYou will receive a confirmation email at ${user.email}`
+      );
       setShowModal(false);
     } catch (error: any) {
       console.error('Error booking appointment:', error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to book appointment');
+      Alert.alert(t('common.error'), error.response?.data?.detail || (isRTL ? 'فشل حجز الموعد' : 'Failed to book appointment'));
     } finally {
       setLoading(false);
     }
@@ -109,26 +119,191 @@ export default function DoctorsScreen() {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingBottom: 40,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    doctorCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+    },
+    doctorIconContainer: {
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
+    },
+    doctorInfo: {
+      flex: 1,
+    },
+    doctorName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    doctorSpecialization: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: '600',
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    doctorDescription: {
+      fontSize: 12,
+      color: colors.textLight,
+      marginBottom: 12,
+      lineHeight: 18,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    bookButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      backgroundColor: colors.primary,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: isRTL ? 'flex-end' : 'flex-start',
+    },
+    bookButtonText: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: 'bold',
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
+    },
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 24,
+      maxHeight: '80%',
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    modalDoctor: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: '600',
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    formGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    dateButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    dateText: {
+      fontSize: 16,
+      color: colors.text,
+      marginLeft: isRTL ? 0 : 12,
+      marginRight: isRTL ? 12 : 0,
+    },
+    input: {
+      backgroundColor: colors.background,
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      fontSize: 16,
+      color: colors.text,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 8,
+    },
+    modalButton: {
+      flex: 1,
+      padding: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    confirmButton: {
+      backgroundColor: colors.primary,
+    },
+    confirmButtonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.contentContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.title}>Our Specialists</Text>
-        <Text style={styles.subtitle}>Book an appointment with our expert doctors</Text>
-
-        <View style={styles.instructionCard}>
-          <Ionicons name="information-circle" size={24} color={Colors.primary} />
-          <Text style={styles.instructionText}>
-            اختر الطبيب المناسب لك واضغط على "Book Appointment" لحجز موعد
-          </Text>
-        </View>
+        <Text style={styles.title}>{t('doctors.title')}</Text>
+        <Text style={styles.subtitle}>{t('doctors.subtitle')}</Text>
 
         {doctors.map((doctor) => (
           <View key={doctor.id} style={styles.doctorCard}>
             <View style={styles.doctorIconContainer}>
-              <Ionicons name="person-circle" size={60} color={Colors.primary} />
+              <Ionicons name="person-circle" size={60} color={colors.primary} />
             </View>
             <View style={styles.doctorInfo}>
               <Text style={styles.doctorName}>{doctor.name}</Text>
@@ -138,8 +313,8 @@ export default function DoctorsScreen() {
                 style={styles.bookButton}
                 onPress={() => handleBookAppointment(doctor)}
               >
-                <Ionicons name="calendar" size={18} color={Colors.white} />
-                <Text style={styles.bookButtonText}>Book Appointment</Text>
+                <Ionicons name="calendar" size={18} color={colors.white} />
+                <Text style={styles.bookButtonText}>{t('doctors.bookAppointment')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -153,18 +328,18 @@ export default function DoctorsScreen() {
         style={styles.modal}
       >
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Book Appointment</Text>
+          <Text style={styles.modalTitle}>{t('doctors.bookAppointment')}</Text>
           <Text style={styles.modalDoctor}>{selectedDoctor?.name}</Text>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{t('appointments.date')}</Text>
             <TouchableOpacity
               style={styles.dateButton}
               onPress={() => setShowDatePicker(true)}
             >
-              <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
               <Text style={styles.dateText}>
-                {selectedDate.toLocaleDateString('en-GB')}
+                {selectedDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -180,22 +355,22 @@ export default function DoctorsScreen() {
           )}
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Time</Text>
+            <Text style={styles.label}>{t('appointments.time')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., 10:00 AM"
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'مثال: 10:00 صباحاً' : 'e.g., 10:00 AM'}
+              placeholderTextColor={colors.textLight}
               value={selectedTime}
               onChangeText={setSelectedTime}
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Notes (Optional)</Text>
+            <Text style={styles.label}>{t('appointments.notes')} ({isRTL ? 'اختياري' : 'Optional'})</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Any special requirements or concerns?"
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'أي متطلبات أو ملاحظات خاصة؟' : 'Any special requirements or concerns?'}
+              placeholderTextColor={colors.textLight}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -209,7 +384,7 @@ export default function DoctorsScreen() {
               onPress={() => setShowModal(false)}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton, loading && styles.buttonDisabled]}
@@ -217,7 +392,7 @@ export default function DoctorsScreen() {
               disabled={loading}
             >
               <Text style={styles.confirmButtonText}>
-                {loading ? 'Booking...' : 'Confirm'}
+                {loading ? t('common.loading') : t('common.confirm')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -226,180 +401,3 @@ export default function DoctorsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginBottom: 20,
-  },
-  instructionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  instructionText: {
-    flex: 1,
-    fontSize: 14,
-    color: Colors.text,
-    marginLeft: 12,
-    lineHeight: 20,
-  },
-  doctorCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-  },
-  doctorIconContainer: {
-    marginRight: 16,
-  },
-  doctorInfo: {
-    flex: 1,
-  },
-  doctorName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  doctorSpecialization: {
-    fontSize: 14,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  doctorDescription: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginBottom: 12,
-    lineHeight: 18,
-  },
-  bookButton: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-  },
-  bookButtonText: {
-    color: Colors.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  modal: {
-    margin: 0,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  modalDoctor: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginBottom: 20,
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  dateText: {
-    fontSize: 16,
-    color: Colors.text,
-    marginLeft: 12,
-  },
-  input: {
-    backgroundColor: Colors.background,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  modalButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cancelButtonText: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: Colors.primary,
-  },
-  confirmButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
