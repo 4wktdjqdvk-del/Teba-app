@@ -366,9 +366,9 @@ async def get_doctor_appointments(doctor_id: str):
     ]
 
 @api_router.get("/appointments", response_model=List[AppointmentResponse])
-async def get_all_appointments():
-    # Sort by date descending
-    appointments = await db.appointments.find().sort("created_at", -1).to_list(1000)
+async def get_all_appointments(limit: int = 100, skip: int = 0):
+    # Sort by date descending with pagination
+    appointments = await db.appointments.find().sort("created_at", -1).skip(skip).limit(min(limit, 500)).to_list(min(limit, 500))
     return [
         AppointmentResponse(
             id=str(apt["_id"]),
