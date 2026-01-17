@@ -10,9 +10,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { offersAPI, appointmentsAPI } from '../../utils/api';
+import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import Modal from 'react-native-modal';
 
 interface Offer {
@@ -25,6 +26,10 @@ interface Offer {
 
 export default function AdminScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  
   const [offers, setOffers] = useState<Offer[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -83,7 +88,7 @@ export default function AdminScreen() {
 
   const handleCreateOffer = async () => {
     if (!offerTitle || !offerDescription || !offerDiscount || !offerValidUntil) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
       return;
     }
 
@@ -95,7 +100,7 @@ export default function AdminScreen() {
         discount: offerDiscount,
         valid_until: offerValidUntil,
       });
-      Alert.alert('Success', 'Offer created successfully');
+      Alert.alert(t('common.success'), isRTL ? 'تم إنشاء العرض بنجاح' : 'Offer created successfully');
       setShowOfferModal(false);
       setOfferTitle('');
       setOfferDescription('');
@@ -103,32 +108,29 @@ export default function AdminScreen() {
       setOfferValidUntil('');
       fetchOffers();
     } catch (error) {
-      Alert.alert('Error', 'Failed to create offer');
+      Alert.alert(t('common.error'), isRTL ? 'فشل إنشاء العرض' : 'Failed to create offer');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteOffer = (offerId: string) => {
-    console.log('handleDeleteOffer called with:', offerId);
     Alert.alert(
-      'Delete Offer',
-      'Are you sure you want to delete this offer?',
+      isRTL ? 'حذف العرض' : 'Delete Offer',
+      isRTL ? 'هل أنت متأكد من حذف هذا العرض؟' : 'Are you sure you want to delete this offer?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Deleting offer:', offerId);
               await offersAPI.delete(offerId);
-              console.log('Offer deleted successfully');
-              Alert.alert('Success', 'Offer deleted successfully');
+              Alert.alert(t('common.success'), isRTL ? 'تم حذف العرض بنجاح' : 'Offer deleted successfully');
               fetchOffers();
             } catch (error) {
               console.error('Error deleting offer:', error);
-              Alert.alert('Error', 'Failed to delete offer');
+              Alert.alert(t('common.error'), isRTL ? 'فشل حذف العرض' : 'Failed to delete offer');
             }
           },
         },
@@ -136,67 +138,279 @@ export default function AdminScreen() {
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingBottom: 40,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 24,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      padding: 16,
+      borderRadius: 16,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.white,
+      marginTop: 8,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.white,
+      marginTop: 4,
+      textAlign: 'center',
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    addButton: {
+      padding: 4,
+    },
+    offerCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+    },
+    offerHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    offerTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
+      flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    deleteButton: {
+      padding: 8,
+      marginLeft: 'auto',
+    },
+    offerDescription: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginBottom: 12,
+      lineHeight: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    offerFooter: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    discountBadge: {
+      backgroundColor: colors.secondary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    discountText: {
+      color: colors.white,
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    validText: {
+      fontSize: 12,
+      color: colors.textLight,
+    },
+    actionCard: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+    },
+    actionText: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+      marginLeft: isRTL ? 0 : 12,
+      marginRight: isRTL ? 12 : 0,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      padding: 40,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginTop: 12,
+    },
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 24,
+      maxHeight: '80%',
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    formGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    input: {
+      backgroundColor: colors.background,
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      fontSize: 16,
+      color: colors.text,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 8,
+    },
+    modalButton: {
+      flex: 1,
+      padding: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    confirmButton: {
+      backgroundColor: colors.primary,
+    },
+    confirmButtonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.contentContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.title}>Admin Dashboard</Text>
+        <Text style={styles.title}>{t('admin.dashboard')}</Text>
 
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: Colors.primary }]}>
-            <Ionicons name="calendar" size={30} color={Colors.white} />
+          <View style={[styles.statCard, { backgroundColor: colors.primary }]}>
+            <Ionicons name="calendar" size={30} color={colors.white} />
             <Text style={styles.statValue}>{stats.totalAppointments}</Text>
-            <Text style={styles.statLabel}>Total Appointments</Text>
+            <Text style={styles.statLabel}>{isRTL ? 'إجمالي المواعيد' : 'Total Appointments'}</Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#F59E0B' }]}>
-            <Ionicons name="time" size={30} color={Colors.white} />
+            <Ionicons name="time" size={30} color={colors.white} />
             <Text style={styles.statValue}>{stats.pending}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
+            <Text style={styles.statLabel}>{isRTL ? 'قيد الانتظار' : 'Pending'}</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: Colors.secondary }]}>
-            <Ionicons name="checkmark-circle" size={30} color={Colors.white} />
+          <View style={[styles.statCard, { backgroundColor: colors.secondary }]}>
+            <Ionicons name="checkmark-circle" size={30} color={colors.white} />
             <Text style={styles.statValue}>{stats.confirmed}</Text>
-            <Text style={styles.statLabel}>Confirmed</Text>
+            <Text style={styles.statLabel}>{isRTL ? 'مؤكد' : 'Confirmed'}</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: Colors.success }]}>
-            <Ionicons name="checkbox" size={30} color={Colors.white} />
+          <View style={[styles.statCard, { backgroundColor: colors.success }]}>
+            <Ionicons name="checkbox" size={30} color={colors.white} />
             <Text style={styles.statValue}>{stats.completed}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statLabel}>{isRTL ? 'مكتمل' : 'Completed'}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Special Offers</Text>
+            <Text style={styles.sectionTitle}>{t('admin.specialOffers')}</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => setShowOfferModal(true)}
             >
-              <Ionicons name="add-circle" size={24} color={Colors.primary} />
+              <Ionicons name="add-circle" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
           {offers.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="pricetag-outline" size={50} color={Colors.textLight} />
-              <Text style={styles.emptyText}>No offers yet</Text>
+              <Ionicons name="pricetag-outline" size={50} color={colors.textLight} />
+              <Text style={styles.emptyText}>{t('admin.noOffers')}</Text>
             </View>
           ) : (
             offers.map((offer) => (
               <View key={offer.id} style={styles.offerCard}>
                 <View style={styles.offerHeader}>
-                  <Ionicons name="pricetag" size={20} color={Colors.secondary} />
+                  <Ionicons name="pricetag" size={20} color={colors.secondary} />
                   <Text style={styles.offerTitle}>{offer.title}</Text>
                   <TouchableOpacity 
                     onPress={() => handleDeleteOffer(offer.id)}
                     style={styles.deleteButton}
                   >
-                    <Ionicons name="trash" size={18} color={Colors.error} />
+                    <Ionicons name="trash" size={18} color={colors.error} />
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.offerDescription}>{offer.description}</Text>
@@ -204,7 +418,9 @@ export default function AdminScreen() {
                   <View style={styles.discountBadge}>
                     <Text style={styles.discountText}>{offer.discount}</Text>
                   </View>
-                  <Text style={styles.validText}>Valid until: {offer.valid_until}</Text>
+                  <Text style={styles.validText}>
+                    {isRTL ? 'صالح حتى: ' : 'Valid until: '}{offer.valid_until}
+                  </Text>
                 </View>
               </View>
             ))
@@ -212,42 +428,42 @@ export default function AdminScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>{t('admin.quickActions')}</Text>
           
           <TouchableOpacity 
             style={styles.actionCard}
             onPress={() => router.push('/(tabs)/appointments')}
           >
-            <Ionicons name="calendar" size={24} color={Colors.primary} />
-            <Text style={styles.actionText}>Manage All Appointments</Text>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name="calendar" size={24} color={colors.primary} />
+            <Text style={styles.actionText}>{t('admin.manageAllAppointments')}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.actionCard}
             onPress={() => router.push('/staff')}
           >
-            <Ionicons name="people" size={24} color={Colors.primary} />
-            <Text style={styles.actionText}>Manage Staff</Text>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name="people" size={24} color={colors.primary} />
+            <Text style={styles.actionText}>{t('admin.manageStaff')}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.actionCard}
             onPress={() => router.push('/analytics')}
           >
-            <Ionicons name="bar-chart" size={24} color={Colors.secondary} />
-            <Text style={styles.actionText}>View Analytics</Text>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name="bar-chart" size={24} color={colors.secondary} />
+            <Text style={styles.actionText}>{t('admin.viewAnalytics')}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.actionCard}
             onPress={() => router.push('/settings')}
           >
-            <Ionicons name="settings" size={24} color={Colors.primary} />
-            <Text style={styles.actionText}>App Settings</Text>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name="settings" size={24} color={colors.primary} />
+            <Text style={styles.actionText}>{t('admin.appSettings')}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -259,25 +475,25 @@ export default function AdminScreen() {
         style={styles.modal}
       >
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Create New Offer</Text>
+          <Text style={styles.modalTitle}>{t('admin.createOffer')}</Text>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>{t('admin.offerTitle')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., Summer Special"
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'مثال: عرض الصيف' : 'e.g., Summer Special'}
+              placeholderTextColor={colors.textLight}
               value={offerTitle}
               onChangeText={setOfferTitle}
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>{t('admin.offerDescription')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Describe the offer..."
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'وصف العرض...' : 'Describe the offer...'}
+              placeholderTextColor={colors.textLight}
               value={offerDescription}
               onChangeText={setOfferDescription}
               multiline
@@ -286,22 +502,22 @@ export default function AdminScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Discount</Text>
+            <Text style={styles.label}>{t('admin.discount')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., 20% OFF"
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'مثال: خصم 20%' : 'e.g., 20% OFF'}
+              placeholderTextColor={colors.textLight}
               value={offerDiscount}
               onChangeText={setOfferDiscount}
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Valid Until</Text>
+            <Text style={styles.label}>{t('admin.validUntil')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., 2025-12-31"
-              placeholderTextColor={Colors.textLight}
+              placeholder={isRTL ? 'مثال: 2025-12-31' : 'e.g., 2025-12-31'}
+              placeholderTextColor={colors.textLight}
               value={offerValidUntil}
               onChangeText={setOfferValidUntil}
             />
@@ -313,7 +529,7 @@ export default function AdminScreen() {
               onPress={() => setShowOfferModal(false)}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton, loading && styles.buttonDisabled]}
@@ -321,7 +537,7 @@ export default function AdminScreen() {
               disabled={loading}
             >
               <Text style={styles.confirmButtonText}>
-                {loading ? 'Creating...' : 'Create'}
+                {loading ? t('common.loading') : t('common.add')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -330,206 +546,3 @@ export default function AdminScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.white,
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Colors.white,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  addButton: {
-    padding: 4,
-  },
-  offerCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  offerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  offerTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginLeft: 8,
-    flex: 1,
-  },
-  deleteButton: {
-    padding: 8,
-    marginLeft: 'auto',
-  },
-  offerDescription: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  offerFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  discountBadge: {
-    backgroundColor: Colors.secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  discountText: {
-    color: Colors.white,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  validText: {
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  actionText: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text,
-    marginLeft: 12,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginTop: 12,
-  },
-  modal: {
-    margin: 0,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 20,
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: Colors.background,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  modalButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cancelButtonText: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: Colors.primary,
-  },
-  confirmButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
