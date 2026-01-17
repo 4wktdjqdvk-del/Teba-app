@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,7 @@ import { offersAPI, appointmentsAPI } from '../../utils/api';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import Modal from 'react-native-modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface Offer {
   id: string;
@@ -43,6 +44,21 @@ export default function AdminScreen() {
     pending: 0,
     confirmed: 0,
     completed: 0,
+  });
+
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState({
+    visible: false,
+    offerId: '',
+    offerTitle: '',
+  });
+
+  // Success/Error message state
+  const [messageDialog, setMessageDialog] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    isError: false,
   });
 
   useEffect(() => {
@@ -86,9 +102,22 @@ export default function AdminScreen() {
     setRefreshing(false);
   };
 
+  const showMessage = (title: string, message: string, isError: boolean = false) => {
+    setMessageDialog({
+      visible: true,
+      title,
+      message,
+      isError,
+    });
+  };
+
   const handleCreateOffer = async () => {
     if (!offerTitle || !offerDescription || !offerDiscount || !offerValidUntil) {
-      Alert.alert(t('common.error'), isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields');
+      showMessage(
+        t('common.error'), 
+        isRTL ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields',
+        true
+      );
       return;
     }
 
@@ -100,42 +129,57 @@ export default function AdminScreen() {
         discount: offerDiscount,
         valid_until: offerValidUntil,
       });
-      Alert.alert(t('common.success'), isRTL ? 'تم إنشاء العرض بنجاح' : 'Offer created successfully');
+      
       setShowOfferModal(false);
       setOfferTitle('');
       setOfferDescription('');
       setOfferDiscount('');
       setOfferValidUntil('');
       fetchOffers();
+      
+      showMessage(
+        t('common.success'), 
+        isRTL ? 'تم إنشاء العرض بنجاح' : 'Offer created successfully'
+      );
     } catch (error) {
-      Alert.alert(t('common.error'), isRTL ? 'فشل إنشاء العرض' : 'Failed to create offer');
+      showMessage(
+        t('common.error'), 
+        isRTL ? 'فشل إنشاء العرض' : 'Failed to create offer',
+        true
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteOffer = (offerId: string) => {
-    Alert.alert(
-      isRTL ? 'حذف العرض' : 'Delete Offer',
-      isRTL ? 'هل أنت متأكد من حذف هذا العرض؟' : 'Are you sure you want to delete this offer?',
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await offersAPI.delete(offerId);
-              Alert.alert(t('common.success'), isRTL ? 'تم حذف العرض بنجاح' : 'Offer deleted successfully');
-              fetchOffers();
-            } catch (error) {
-              console.error('Error deleting offer:', error);
-              Alert.alert(t('common.error'), isRTL ? 'فشل حذف العرض' : 'Failed to delete offer');
-            }
-          },
-        },
-      ]
-    );
+  const showDeleteConfirmation = (offerId: string, title: string) => {
+    setDeleteDialog({
+      visible: true,
+      offerId,
+      offerTitle: title,
+    });
+  };
+
+  const handleDeleteOffer = async () => {
+    setLoading(true);
+    try {
+      await offersAPI.delete(deleteDialog.offerId);
+      setDeleteDialog({ ...deleteDialog, visible: false });
+      fetchOffers();
+      showMessage(
+        t('common.success'), 
+        isRTL ? 'تم حذف العرض بنجاح' : 'Offer deleted successfully'
+      );
+    } catch (error) {
+      console.error('Error deleting offer:', error);
+      showMessage(
+        t('common.error'), 
+        isRTL ? 'فشل حذف العرض' : 'Failed to delete offer',
+        true
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const styles = StyleSheet.create({
@@ -194,7 +238,9 @@ export default function AdminScreen() {
       color: colors.text,
     },
     addButton: {
-      padding: 4,
+      padding: 8,
+      backgroundColor: colors.primary + '20',
+      borderRadius: 20,
     },
     offerCard: {
       backgroundColor: colors.card,
@@ -217,8 +263,9 @@ export default function AdminScreen() {
       textAlign: isRTL ? 'right' : 'left',
     },
     deleteButton: {
-      padding: 8,
-      marginLeft: 'auto',
+      padding: 10,
+      backgroundColor: colors.error + '15',
+      borderRadius: 8,
     },
     offerDescription: {
       fontSize: 14,
@@ -348,6 +395,48 @@ export default function AdminScreen() {
     buttonDisabled: {
       opacity: 0.6,
     },
+    // Message dialog styles
+    messageModal: {
+      margin: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    messageContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '100%',
+      maxWidth: 320,
+      alignItems: 'center',
+    },
+    messageIcon: {
+      marginBottom: 16,
+    },
+    messageTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    messageText: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginBottom: 20,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    messageButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 40,
+      borderRadius: 10,
+    },
+    messageButtonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: '600',
+    },
   });
 
   return (
@@ -391,7 +480,7 @@ export default function AdminScreen() {
               style={styles.addButton}
               onPress={() => setShowOfferModal(true)}
             >
-              <Ionicons name="add-circle" size={24} color={colors.primary} />
+              <Ionicons name="add-circle" size={28} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -407,10 +496,10 @@ export default function AdminScreen() {
                   <Ionicons name="pricetag" size={20} color={colors.secondary} />
                   <Text style={styles.offerTitle}>{offer.title}</Text>
                   <TouchableOpacity 
-                    onPress={() => handleDeleteOffer(offer.id)}
+                    onPress={() => showDeleteConfirmation(offer.id, offer.title)}
                     style={styles.deleteButton}
                   >
-                    <Ionicons name="trash" size={18} color={colors.error} />
+                    <Ionicons name="trash" size={20} color={colors.error} />
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.offerDescription}>{offer.description}</Text>
@@ -468,6 +557,7 @@ export default function AdminScreen() {
         </View>
       </ScrollView>
 
+      {/* Create Offer Modal */}
       <Modal
         isVisible={showOfferModal}
         onBackdropPress={() => !loading && setShowOfferModal(false)}
@@ -541,6 +631,45 @@ export default function AdminScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        visible={deleteDialog.visible}
+        title={isRTL ? 'حذف العرض' : 'Delete Offer'}
+        message={isRTL 
+          ? `هل أنت متأكد من حذف "${deleteDialog.offerTitle}"؟`
+          : `Are you sure you want to delete "${deleteDialog.offerTitle}"?`
+        }
+        confirmText={isRTL ? 'حذف' : 'Delete'}
+        confirmColor={colors.error}
+        onConfirm={handleDeleteOffer}
+        onCancel={() => setDeleteDialog({ ...deleteDialog, visible: false })}
+        loading={loading}
+      />
+
+      {/* Message Dialog */}
+      <Modal
+        isVisible={messageDialog.visible}
+        onBackdropPress={() => setMessageDialog({ ...messageDialog, visible: false })}
+        style={styles.messageModal}
+      >
+        <View style={styles.messageContainer}>
+          <Ionicons 
+            name={messageDialog.isError ? 'close-circle' : 'checkmark-circle'} 
+            size={50} 
+            color={messageDialog.isError ? colors.error : colors.success}
+            style={styles.messageIcon}
+          />
+          <Text style={styles.messageTitle}>{messageDialog.title}</Text>
+          <Text style={styles.messageText}>{messageDialog.message}</Text>
+          <TouchableOpacity
+            style={[styles.messageButton, { backgroundColor: messageDialog.isError ? colors.error : colors.success }]}
+            onPress={() => setMessageDialog({ ...messageDialog, visible: false })}
+          >
+            <Text style={styles.messageButtonText}>{isRTL ? 'حسناً' : 'OK'}</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
