@@ -43,7 +43,7 @@ export default function TabLayout() {
         }}
       />
       
-      {isPatient && (
+      {(isPatient || ('isGuest' in user && !user.isGuest)) && (
         <Tabs.Screen
           name="doctors"
           options={{
