@@ -6,35 +6,27 @@ import ar from '../locales/ar.json';
 
 const LANGUAGE_KEY = '@app:language';
 
-// Get saved language
-const getLanguage = async () => {
-  try {
-    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
-    return savedLanguage || 'en';
-  } catch (error) {
-    return 'en';
-  }
-};
+i18n
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: { translation: en },
+      ar: { translation: ar },
+    },
+    lng: 'en',
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false,
+    },
+    compatibilityJSON: 'v3',
+  });
 
-// Initialize i18n
-const initI18n = async () => {
-  const language = await getLanguage();
-  
-  i18n
-    .use(initReactI18next)
-    .init({
-      resources: {
-        en: { translation: en },
-        ar: { translation: ar },
-      },
-      lng: language,
-      fallbackLng: 'en',
-      interpolation: {
-        escapeValue: false,
-      },
-      compatibilityJSON: 'v3',
-    });
-};
+// Load saved language
+AsyncStorage.getItem(LANGUAGE_KEY).then((savedLanguage) => {
+  if (savedLanguage) {
+    i18n.changeLanguage(savedLanguage);
+  }
+});
 
 // Save language preference
 export const saveLanguage = async (language: string) => {
@@ -45,8 +37,5 @@ export const saveLanguage = async (language: string) => {
     console.error('Error saving language:', error);
   }
 };
-
-// Initialize
-initI18n();
 
 export default i18n;
