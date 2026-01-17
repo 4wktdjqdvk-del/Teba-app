@@ -38,19 +38,71 @@ export default function HomeScreen() {
   };
 
   const openURL = (url: string) => {
-    Linking.openURL(url);
+    try {
+      Linking.canOpenURL(url).then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          // Fallback for web
+          if (typeof window !== 'undefined') {
+            window.open(url, '_blank');
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error opening URL:', error);
+    }
   };
 
   const callPhone = (phone: string) => {
-    Linking.openURL(`tel:${phone}`);
+    try {
+      const url = `tel:${phone}`;
+      Linking.canOpenURL(url).then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          if (typeof window !== 'undefined') {
+            window.location.href = url;
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error calling:', error);
+    }
   };
 
   const sendEmail = (email: string) => {
-    Linking.openURL(`mailto:${email}`);
+    try {
+      const url = `mailto:${email}`;
+      Linking.canOpenURL(url).then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          if (typeof window !== 'undefined') {
+            window.location.href = url;
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
   };
 
   const openWhatsApp = (phone: string) => {
-    Linking.openURL(`whatsapp://send?phone=+974${phone}`);
+    try {
+      const url = `https://wa.me/974${phone}`;
+      Linking.canOpenURL(url).then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          if (typeof window !== 'undefined') {
+            window.open(url, '_blank');
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+    }
   };
 
   return (
