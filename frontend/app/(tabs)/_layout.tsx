@@ -6,12 +6,17 @@ import { useAuth } from '../../context/AuthContext';
 export default function TabLayout() {
   const { user } = useAuth();
 
-  const isPatient = user?.role === 'patient' || ('isGuest' in user && user.isGuest);
+  // Safe role checks
+  const isGuest = user && 'isGuest' in user && user.isGuest === true;
+  const isPatient = user?.role === 'patient';
   const isDoctor = user?.role === 'doctor';
   const isReceptionist = user?.role === 'receptionist';
   const isAdmin = user?.role === 'admin';
   const isNurse = user?.role === 'nurse';
   const isStaff = isDoctor || isNurse || isReceptionist || isAdmin;
+
+  // Guests should NOT see appointments tab (they don't have history)
+  const canSeeAppointments = !isGuest && (isPatient || isStaff);
 
   return (
     <Tabs
@@ -38,45 +43,41 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: 'الرئيسية',
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
       
-      {(isPatient || ('isGuest' in user && !user.isGuest)) && (
-        <Tabs.Screen
-          name="doctors"
-          options={{
-            title: 'Doctors',
-            tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="doctors"
+        options={{
+          title: 'الأطباء',
+          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
+        }}
+      />
 
-      {(user?.role === 'patient' || isDoctor || isNurse || isReceptionist) && (
-        <Tabs.Screen
-          name="appointments"
-          options={{
-            title: 'Appointments',
-            tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="appointments"
+        options={{
+          title: 'المواعيد',
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          href: canSeeAppointments ? undefined : null,
+        }}
+      />
 
-      {isAdmin && (
-        <Tabs.Screen
-          name="admin"
-          options={{
-            title: 'Admin',
-            tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'الإدارة',
+          tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
+          href: isAdmin ? undefined : null,
+        }}
+      />
 
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'حسابي',
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
