@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +15,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Modal from 'react-native-modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
