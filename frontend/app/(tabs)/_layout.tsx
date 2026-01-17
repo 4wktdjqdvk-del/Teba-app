@@ -6,11 +6,12 @@ import { useAuth } from '../../context/AuthContext';
 export default function TabLayout() {
   const { user } = useAuth();
 
-  const isPatient = user?.role === 'patient';
+  const isPatient = user?.role === 'patient' || ('isGuest' in user && user.isGuest);
   const isDoctor = user?.role === 'doctor';
   const isReceptionist = user?.role === 'receptionist';
   const isAdmin = user?.role === 'admin';
   const isNurse = user?.role === 'nurse';
+  const isStaff = isDoctor || isNurse || isReceptionist || isAdmin;
 
   return (
     <Tabs
