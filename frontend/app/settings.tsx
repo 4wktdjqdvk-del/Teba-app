@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,29 +9,40 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
+import { saveLanguage } from '../i18n/config';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { colors, isDark, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
   const handleLanguageChange = () => {
     Alert.alert(
-      'Language / اللغة',
-      'Select Language / اختر اللغة',
+      'اللغة / Language',
+      isRTL ? 'اختر اللغة' : 'Select Language',
       [
-        { text: 'Cancel / إلغاء', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
           text: 'English',
-          onPress: () => Alert.alert('Success', 'Language changed to English'),
+          onPress: async () => {
+            await saveLanguage('en');
+            Alert.alert('Success', 'Language changed to English');
+          },
         },
         {
           text: 'العربية',
-          onPress: () => Alert.alert('نجح', 'تم تغيير اللغة إلى العربية'),
+          onPress: async () => {
+            await saveLanguage('ar');
+            Alert.alert('نجح', 'تم تغيير اللغة إلى العربية');
+          },
         },
       ]
     );
@@ -39,195 +50,311 @@ export default function SettingsScreen() {
 
   const handleBackupData = () => {
     Alert.alert(
-      'Backup Data',
-      'Export clinic data?',
+      isRTL ? 'نسخ احتياطي' : 'Backup Data',
+      isRTL ? 'تصدير بيانات العيادة؟' : 'Export clinic data?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Export',
+          text: isRTL ? 'تصدير' : 'Export',
           onPress: () => {
-            Alert.alert('Success', 'Data exported successfully!\nCheck your downloads folder.');
+            Alert.alert(
+              t('common.success'),
+              isRTL ? 'تم تصدير البيانات بنجاح!\nتحقق من مجلد التنزيلات.' : 'Data exported successfully!\nCheck your downloads folder.'
+            );
           },
         },
       ]
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      backgroundColor: colors.primary,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingTop: 50,
+      paddingBottom: 16,
+      paddingHorizontal: 16,
+    },
+    backButton: {
+      padding: 8,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    placeholder: {
+      width: 40,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingBottom: 40,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 12,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    settingCard: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+    },
+    settingLeft: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    iconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    settingDescription: {
+      fontSize: 12,
+      color: colors.textLight,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    infoCard: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+    },
+    infoLabel: {
+      fontSize: 14,
+      color: colors.textLight,
+    },
+    infoValue: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>App Settings</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Clinic Information</Text>
+          <Text style={styles.sectionTitle}>{t('settings.clinicInfo')}</Text>
           
           <TouchableOpacity style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="business" size={24} color={Colors.primary} />
+                <Ionicons name="business" size={24} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Clinic Details</Text>
-                <Text style={styles.settingDescription}>Name, address, contact info</Text>
+                <Text style={styles.settingTitle}>{t('settings.clinicDetails')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'الاسم، العنوان، معلومات الاتصال' : 'Name, address, contact info'}
+                </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="time" size={24} color={Colors.secondary} />
+                <Ionicons name="time" size={24} color={colors.secondary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Working Hours</Text>
-                <Text style={styles.settingDescription}>Set clinic operating hours</Text>
+                <Text style={styles.settingTitle}>{t('settings.workingHours')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'تعيين أوقات عمل العيادة' : 'Set clinic operating hours'}
+                </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="images" size={24} color={Colors.primary} />
+                <Ionicons name="images" size={24} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Gallery</Text>
-                <Text style={styles.settingDescription}>Manage clinic photos</Text>
+                <Text style={styles.settingTitle}>{t('settings.gallery')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'إدارة صور العيادة' : 'Manage clinic photos'}
+                </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
+          <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
           
           <View style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="notifications" size={24} color={Colors.primary} />
+                <Ionicons name="notifications" size={24} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Push Notifications</Text>
-                <Text style={styles.settingDescription}>Receive app notifications</Text>
+                <Text style={styles.settingTitle}>{t('settings.pushNotifications')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'استلام إشعارات التطبيق' : 'Receive app notifications'}
+                </Text>
               </View>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor={Colors.white}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.white}
             />
           </View>
 
           <View style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="mail" size={24} color={Colors.secondary} />
+                <Ionicons name="mail" size={24} color={colors.secondary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Email Notifications</Text>
-                <Text style={styles.settingDescription}>Send appointment emails</Text>
+                <Text style={styles.settingTitle}>{t('settings.emailNotifications')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'إرسال رسائل المواعيد' : 'Send appointment emails'}
+                </Text>
               </View>
             </View>
             <Switch
               value={emailNotifications}
               onValueChange={setEmailNotifications}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor={Colors.white}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.white}
             />
           </View>
 
           <View style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="chatbubbles" size={24} color={Colors.success} />
+                <Ionicons name="chatbubbles" size={24} color={colors.success} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>SMS Notifications</Text>
-                <Text style={styles.settingDescription}>Send appointment SMS</Text>
+                <Text style={styles.settingTitle}>{t('settings.smsNotifications')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'إرسال رسائل SMS للمواعيد' : 'Send appointment SMS'}
+                </Text>
               </View>
             </View>
             <Switch
               value={smsNotifications}
               onValueChange={setSmsNotifications}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor={Colors.white}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.white}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>System</Text>
+          <Text style={styles.sectionTitle}>{isRTL ? 'النظام' : 'System'}</Text>
           
           <TouchableOpacity style={styles.settingCard} onPress={handleLanguageChange}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="language" size={24} color={Colors.primary} />
+                <Ionicons name="language" size={24} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Language / اللغة</Text>
-                <Text style={styles.settingDescription}>English</Text>
+                <Text style={styles.settingTitle}>{t('settings.language')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isRTL ? 'العربية' : 'English'}
+                </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
 
           <View style={styles.settingCard}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name={darkMode ? "sunny" : "moon"} size={24} color={Colors.secondary} />
+                <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={colors.secondary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Dark Mode</Text>
-                <Text style={styles.settingDescription}>{darkMode ? 'Dark' : 'Light'} mode</Text>
+                <Text style={styles.settingTitle}>{t('settings.darkMode')}</Text>
+                <Text style={styles.settingDescription}>
+                  {isDark ? (isRTL ? 'الوضع الداكن' : 'Dark mode') : (isRTL ? 'الوضع الفاتح' : 'Light mode')}
+                </Text>
               </View>
             </View>
             <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor={Colors.white}
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.white}
             />
           </View>
 
           <TouchableOpacity style={styles.settingCard} onPress={handleBackupData}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <Ionicons name="download" size={24} color={Colors.primary} />
+                <Ionicons name="download" size={24} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Backup Data</Text>
-                <Text style={styles.settingDescription}>Export clinic data</Text>
+                <Text style={styles.settingTitle}>{t('settings.backupData')}</Text>
+                <Text style={styles.settingDescription}>
+                  {t('settings.exportData')}
+                </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>{isRTL ? 'حول' : 'About'}</Text>
           
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>App Version</Text>
+            <Text style={styles.infoLabel}>{isRTL ? 'إصدار التطبيق' : 'App Version'}</Text>
             <Text style={styles.infoValue}>1.0.0</Text>
           </View>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Last Updated</Text>
-            <Text style={styles.infoValue}>January 2026</Text>
+            <Text style={styles.infoLabel}>{isRTL ? 'آخر تحديث' : 'Last Updated'}</Text>
+            <Text style={styles.infoValue}>{isRTL ? 'يناير 2026' : 'January 2026'}</Text>
           </View>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Build Number</Text>
+            <Text style={styles.infoLabel}>{isRTL ? 'رقم البناء' : 'Build Number'}</Text>
             <Text style={styles.infoValue}>100</Text>
           </View>
         </View>
@@ -235,94 +362,3 @@ export default function SettingsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    backgroundColor: Colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  placeholder: {
-    width: 40,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  settingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-});

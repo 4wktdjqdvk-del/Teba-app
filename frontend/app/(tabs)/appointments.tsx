@@ -8,10 +8,11 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { appointmentsAPI } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 interface Appointment {
   id: string;
@@ -28,6 +29,10 @@ interface Appointment {
 
 export default function AppointmentsScreen() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,7 +54,7 @@ export default function AppointmentsScreen() {
       setAppointments(data || []);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      Alert.alert('Error', 'Failed to load appointments');
+      Alert.alert(t('common.error'), isRTL ? 'فشل تحميل المواعيد' : 'Failed to load appointments');
     } finally {
       setLoading(false);
     }
@@ -62,24 +67,25 @@ export default function AppointmentsScreen() {
   };
 
   const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
-    console.log('handleStatusUpdate called:', appointmentId, newStatus);
+    const statusText = isRTL 
+      ? (newStatus === 'confirmed' ? 'مؤكد' : newStatus === 'cancelled' ? 'ملغي' : 'مكتمل')
+      : newStatus;
+    
     Alert.alert(
-      'Update Status',
-      `Change appointment status to "${newStatus}"?`,
+      isRTL ? 'تحديث الحالة' : 'Update Status',
+      isRTL ? `تغيير حالة الموعد إلى "${statusText}"؟` : `Change appointment status to "${newStatus}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('common.confirm'),
           onPress: async () => {
             try {
-              console.log('Updating status...');
               await appointmentsAPI.updateStatus(appointmentId, newStatus);
-              console.log('Status updated successfully');
-              Alert.alert('Success', 'Appointment status updated');
+              Alert.alert(t('common.success'), isRTL ? 'تم تحديث حالة الموعد' : 'Appointment status updated');
               fetchAppointments();
             } catch (error) {
               console.error('Error updating status:', error);
-              Alert.alert('Error', 'Failed to update status');
+              Alert.alert(t('common.error'), isRTL ? 'فشل تحديث الحالة' : 'Failed to update status');
             }
           },
         },
@@ -89,20 +95,20 @@ export default function AppointmentsScreen() {
 
   const handleDelete = (appointmentId: string) => {
     Alert.alert(
-      'Cancel Appointment',
-      'Are you sure you want to cancel this appointment?',
+      isRTL ? 'إلغاء الموعد' : 'Cancel Appointment',
+      isRTL ? 'هل أنت متأكد من إلغاء هذا الموعد؟' : 'Are you sure you want to cancel this appointment?',
       [
-        { text: 'No', style: 'cancel' },
+        { text: isRTL ? 'لا' : 'No', style: 'cancel' },
         {
-          text: 'Yes',
+          text: isRTL ? 'نعم' : 'Yes',
           style: 'destructive',
           onPress: async () => {
             try {
               await appointmentsAPI.delete(appointmentId);
-              Alert.alert('Success', 'Appointment cancelled');
+              Alert.alert(t('common.success'), isRTL ? 'تم إلغاء الموعد' : 'Appointment cancelled');
               fetchAppointments();
             } catch (error) {
-              Alert.alert('Error', 'Failed to cancel appointment');
+              Alert.alert(t('common.error'), isRTL ? 'فشل إلغاء الموعد' : 'Failed to cancel appointment');
             }
           },
         },
@@ -115,15 +121,159 @@ export default function AppointmentsScreen() {
       case 'pending':
         return '#F59E0B';
       case 'confirmed':
-        return Colors.primary;
+        return colors.primary;
       case 'completed':
-        return Colors.success;
+        return colors.success;
       case 'cancelled':
-        return Colors.error;
+        return colors.error;
       default:
-        return Colors.textLight;
+        return colors.textLight;
     }
   };
+
+  const getStatusText = (status: string) => {
+    if (!isRTL) return status.toUpperCase();
+    switch (status) {
+      case 'pending': return 'قيد الانتظار';
+      case 'confirmed': return 'مؤكد';
+      case 'completed': return 'مكتمل';
+      case 'cancelled': return 'ملغي';
+      default: return status;
+    }
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingBottom: 40,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+    },
+    cardHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    headerLeft: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+    },
+    date: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
+    },
+    statusBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    cardContent: {
+      marginBottom: 12,
+    },
+    infoRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    infoText: {
+      fontSize: 14,
+      color: colors.text,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    notesContainer: {
+      marginTop: 8,
+      padding: 12,
+      backgroundColor: colors.background,
+      borderRadius: 8,
+    },
+    notesLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textLight,
+      marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    notesText: {
+      fontSize: 12,
+      color: colors.text,
+      lineHeight: 18,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    actionsContainer: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 12,
+    },
+    actionButton: {
+      flex: 1,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 12,
+      borderRadius: 8,
+    },
+    confirmButton: {
+      backgroundColor: colors.success,
+    },
+    rejectButton: {
+      backgroundColor: colors.error,
+    },
+    completeButton: {
+      backgroundColor: colors.primary,
+    },
+    cancelButton: {
+      backgroundColor: colors.error,
+    },
+    actionButtonText: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: '600',
+      marginLeft: isRTL ? 0 : 6,
+      marginRight: isRTL ? 6 : 0,
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textLight,
+      marginTop: 16,
+    },
+  });
 
   const renderAppointmentCard = (appointment: Appointment) => {
     const canManage = user?.role === 'doctor' || user?.role === 'receptionist' || user?.role === 'admin' || user?.role === 'nurse';
@@ -133,35 +283,35 @@ export default function AppointmentsScreen() {
       <View key={appointment.id} style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.headerLeft}>
-            <Ionicons name="calendar" size={20} color={Colors.primary} />
+            <Ionicons name="calendar" size={20} color={colors.primary} />
             <Text style={styles.date}>{appointment.date}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
-            <Text style={styles.statusText}>{appointment.status.toUpperCase()}</Text>
+            <Text style={styles.statusText}>{getStatusText(appointment.status)}</Text>
           </View>
         </View>
 
         <View style={styles.cardContent}>
           <View style={styles.infoRow}>
-            <Ionicons name="time" size={16} color={Colors.textLight} />
+            <Ionicons name="time" size={16} color={colors.textLight} />
             <Text style={styles.infoText}>{appointment.time}</Text>
           </View>
 
           {user?.role !== 'patient' && (
             <View style={styles.infoRow}>
-              <Ionicons name="person" size={16} color={Colors.textLight} />
+              <Ionicons name="person" size={16} color={colors.textLight} />
               <Text style={styles.infoText}>{appointment.patient_name}</Text>
             </View>
           )}
 
           <View style={styles.infoRow}>
-            <Ionicons name="medkit" size={16} color={Colors.textLight} />
-            <Text style={styles.infoText}>Dr. {appointment.doctor_name}</Text>
+            <Ionicons name="medkit" size={16} color={colors.textLight} />
+            <Text style={styles.infoText}>{isRTL ? 'د.' : 'Dr.'} {appointment.doctor_name}</Text>
           </View>
 
           {appointment.notes && (
             <View style={styles.notesContainer}>
-              <Text style={styles.notesLabel}>Notes:</Text>
+              <Text style={styles.notesLabel}>{t('appointments.notes')}:</Text>
               <Text style={styles.notesText}>{appointment.notes}</Text>
             </View>
           )}
@@ -173,15 +323,15 @@ export default function AppointmentsScreen() {
               style={[styles.actionButton, styles.confirmButton]}
               onPress={() => handleStatusUpdate(appointment.id, 'confirmed')}
             >
-              <Ionicons name="checkmark-circle" size={18} color={Colors.white} />
-              <Text style={styles.actionButtonText}>Confirm</Text>
+              <Ionicons name="checkmark-circle" size={18} color={colors.white} />
+              <Text style={styles.actionButtonText}>{t('appointments.confirmBtn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.rejectButton]}
               onPress={() => handleStatusUpdate(appointment.id, 'cancelled')}
             >
-              <Ionicons name="close-circle" size={18} color={Colors.white} />
-              <Text style={styles.actionButtonText}>Cancel</Text>
+              <Ionicons name="close-circle" size={18} color={colors.white} />
+              <Text style={styles.actionButtonText}>{t('appointments.cancelBtn')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -192,8 +342,8 @@ export default function AppointmentsScreen() {
               style={[styles.actionButton, styles.completeButton]}
               onPress={() => handleStatusUpdate(appointment.id, 'completed')}
             >
-              <Ionicons name="checkbox" size={18} color={Colors.white} />
-              <Text style={styles.actionButtonText}>Complete</Text>
+              <Ionicons name="checkbox" size={18} color={colors.white} />
+              <Text style={styles.actionButtonText}>{t('appointments.complete')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -204,8 +354,8 @@ export default function AppointmentsScreen() {
               style={[styles.actionButton, styles.cancelButton]}
               onPress={() => handleDelete(appointment.id)}
             >
-              <Ionicons name="trash" size={18} color={Colors.white} />
-              <Text style={styles.actionButtonText}>Cancel Appointment</Text>
+              <Ionicons name="trash" size={18} color={colors.white} />
+              <Text style={styles.actionButtonText}>{t('appointments.cancelAppointment')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -220,18 +370,18 @@ export default function AppointmentsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <Text style={styles.title}>
-          {user?.role === 'patient' ? 'My Appointments' : 'Manage Appointments'}
+          {user?.role === 'patient' ? t('appointments.title') : t('appointments.manageTitle')}
         </Text>
         <Text style={styles.subtitle}>
-          {appointments.length} {appointments.length === 1 ? 'appointment' : 'appointments'}
+          {appointments.length} {isRTL ? 'موعد' : (appointments.length === 1 ? 'appointment' : 'appointments')}
         </Text>
 
         {loading ? (
-          <Text style={styles.emptyText}>Loading...</Text>
+          <Text style={styles.emptyText}>{t('common.loading')}</Text>
         ) : appointments.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={60} color={Colors.textLight} />
-            <Text style={styles.emptyText}>No appointments yet</Text>
+            <Ionicons name="calendar-outline" size={60} color={colors.textLight} />
+            <Text style={styles.emptyText}>{t('appointments.noAppointments')}</Text>
           </View>
         ) : (
           appointments.map(renderAppointmentCard)
@@ -240,128 +390,3 @@ export default function AppointmentsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginBottom: 20,
-  },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  date: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  cardContent: {
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  notesContainer: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: Colors.background,
-    borderRadius: 8,
-  },
-  notesLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textLight,
-    marginBottom: 4,
-  },
-  notesText: {
-    fontSize: 12,
-    color: Colors.text,
-    lineHeight: 18,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  confirmButton: {
-    backgroundColor: Colors.success,
-  },
-  rejectButton: {
-    backgroundColor: Colors.error,
-  },
-  completeButton: {
-    backgroundColor: Colors.primary,
-  },
-  cancelButton: {
-    backgroundColor: Colors.error,
-  },
-  actionButtonText: {
-    color: Colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textLight,
-    marginTop: 16,
-  },
-});
