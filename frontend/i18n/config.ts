@@ -13,8 +13,8 @@ i18n
       en: { translation: en },
       ar: { translation: ar },
     },
-    lng: 'en',
-    fallbackLng: 'en',
+    lng: 'ar',
+    fallbackLng: 'ar',
     interpolation: {
       escapeValue: false,
     },
@@ -42,5 +42,8 @@ export const loadSavedLanguage = async () => {
     console.error('Error loading language:', error);
   }
 };
+
+export const getCurrentLanguage = () => i18n.language;
+export const isRTL = () => i18n.language === 'ar';
 
 export default i18n;

@@ -15,3 +15,23 @@ export const Colors = {
   gradientStart: '#0891B2',
   gradientEnd: '#10B981',
 };
+
+export const DarkColors = {
+  primary: '#22D3EE',
+  primaryDark: '#0891B2',
+  secondary: '#34D399',
+  secondaryDark: '#10B981',
+  background: '#0F172A',
+  card: '#1E293B',
+  text: '#F8FAFC',
+  textLight: '#94A3B8',
+  border: '#334155',
+  error: '#F87171',
+  success: '#34D399',
+  white: '#FFFFFF',
+  black: '#000000',
+  gradientStart: '#22D3EE',
+  gradientEnd: '#34D399',
+};
+
+export const getColors = (isDark: boolean) => isDark ? DarkColors : Colors;
