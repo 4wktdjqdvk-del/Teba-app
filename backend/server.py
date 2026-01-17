@@ -466,10 +466,10 @@ async def get_clinic_info():
 # Staff Management APIs
 @api_router.get("/staff")
 async def get_all_staff():
-    # Get all doctors - exclude password for security
-    doctors = await db.doctors.find({}, {'password': 0}).to_list(100)
-    # Get all nurses and receptionist - exclude password for security
-    staff = await db.users.find({"role": {"$in": ["nurse", "receptionist"]}}, {'password': 0}).to_list(100)
+    # Get all doctors - exclude password for security with proper limit
+    doctors = await db.doctors.find({}, {'password': 0}).limit(100).to_list(100)
+    # Get all nurses and receptionist - exclude password for security with proper limit
+    staff = await db.users.find({"role": {"$in": ["nurse", "receptionist"]}}, {'password': 0}).limit(100).to_list(100)
     
     all_staff = []
     
