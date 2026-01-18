@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 export default function TabLayout() {
   const { user } = useAuth();
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
 
   // Safe role checks
   const isGuest = user && 'isGuest' in user && user.isGuest === true;
@@ -56,6 +57,14 @@ export default function TabLayout() {
         options={{
           title: t('tabs.doctors'),
           tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="gallery"
+        options={{
+          title: isRTL ? 'المعرض' : 'Gallery',
+          tabBarIcon: ({ color, size }) => <Ionicons name="images" size={size} color={color} />,
         }}
       />
 
