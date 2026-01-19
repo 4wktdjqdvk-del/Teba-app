@@ -126,12 +126,8 @@ export default function GalleryScreen() {
   };
 
   const openMedia = (item: MediaItem) => {
-    if (item.type === 'video') {
-      Linking.openURL(item.url);
-    } else {
-      setSelectedMedia(item);
-      setShowModal(true);
-    }
+    setSelectedMedia(item);
+    setShowModal(true);
   };
 
   const styles = StyleSheet.create({
