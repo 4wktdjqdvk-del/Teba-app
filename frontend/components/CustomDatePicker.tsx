@@ -313,6 +313,8 @@ export default function CustomDatePicker({
       style={styles.modal}
       animationIn="zoomIn"
       animationOut="zoomOut"
+      backdropOpacity={0.5}
+      useNativeDriver={false}
     >
       <View style={styles.container}>
         {/* Header with month/year navigation */}
