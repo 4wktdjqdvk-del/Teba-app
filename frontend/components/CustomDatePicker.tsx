@@ -79,7 +79,9 @@ export default function CustomDatePicker({
 
   const selectDate = (day: number) => {
     const newDate = new Date(currentYear, currentMonth, day);
-    if (newDate >= new Date(minimumDate.setHours(0, 0, 0, 0))) {
+    const minDate = new Date(minimumDate);
+    minDate.setHours(0, 0, 0, 0);
+    if (newDate >= minDate) {
       setTempSelectedDate(newDate);
     }
   };
