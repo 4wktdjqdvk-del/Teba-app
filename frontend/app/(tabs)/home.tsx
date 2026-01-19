@@ -273,6 +273,58 @@ export default function HomeScreen() {
     timeColumn: {
       alignItems: isRTL ? 'flex-start' : 'flex-end',
     },
+    // Offers styles
+    offerCard: {
+      backgroundColor: colors.secondary,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+    },
+    offerHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+    },
+    offerTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.white,
+      flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    offerDiscount: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    offerDiscountText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: colors.secondary,
+    },
+    offerDescription: {
+      fontSize: 14,
+      color: colors.white,
+      opacity: 0.9,
+      marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    offerValidity: {
+      fontSize: 12,
+      color: colors.white,
+      opacity: 0.7,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    noOffersText: {
+      fontSize: 14,
+      color: colors.textLight,
+      textAlign: 'center',
+      padding: 20,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+    },
   });
 
   return (
