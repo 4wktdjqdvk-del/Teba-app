@@ -410,17 +410,10 @@ export default function GalleryScreen() {
                 activeOpacity={0.8}
               >
                 <Image
-                  source={{ uri: item.type === 'video' ? item.thumbnail : item.url }}
+                  source={{ uri: item.url }}
                   style={styles.mediaImage}
                   resizeMode="cover"
                 />
-                {item.type === 'video' && (
-                  <View style={styles.videoOverlay}>
-                    <View style={styles.playButton}>
-                      <Ionicons name="play" size={24} color={colors.primary} />
-                    </View>
-                  </View>
-                )}
                 <View style={styles.mediaInfo}>
                   <Text style={styles.mediaTitle} numberOfLines={1}>
                     {item.title}
