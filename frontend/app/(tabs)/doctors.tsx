@@ -41,6 +41,14 @@ export default function DoctorsScreen() {
   const [notes, setNotes] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Alert dialog states
+  const [alertDialog, setAlertDialog] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    isSuccess: false,
+  });
 
   useEffect(() => {
     fetchDoctors();
