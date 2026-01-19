@@ -12,8 +12,16 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { clinicAPI } from '../../utils/api';
+import { clinicAPI, offersAPI } from '../../utils/api';
 import { useTranslation } from 'react-i18next';
+
+interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  discount: string;
+  valid_until: string;
+}
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -22,10 +30,12 @@ export default function HomeScreen() {
   const isRTL = i18n.language === 'ar';
   
   const [clinicInfo, setClinicInfo] = useState<any>(null);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchClinicInfo();
+    fetchOffers();
   }, []);
 
   const fetchClinicInfo = async () => {
@@ -37,9 +47,18 @@ export default function HomeScreen() {
     }
   };
 
+  const fetchOffers = async () => {
+    try {
+      const data = await offersAPI.getAll();
+      setOffers(data);
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchClinicInfo();
+    await Promise.all([fetchClinicInfo(), fetchOffers()]);
     setRefreshing(false);
   };
 
