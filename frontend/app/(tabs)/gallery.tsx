@@ -65,9 +65,9 @@ const galleryData: MediaItem[] = [
   {
     id: '5',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1629909615957-be38d6c1efc6?w=800',
+    url: 'https://images.unsplash.com/photo-1581585744463-7cde76bc7016?w=800',
     title: 'فينير الأسنان',
-    description: 'ابتسامة هوليوود مع الفينير',
+    description: 'ابتسامة هوليوود المثالية مع الفينير',
     category: 'treatments',
   },
   {
@@ -85,14 +85,6 @@ const galleryData: MediaItem[] = [
     title: 'علاج جذور الأسنان',
     description: 'علاج آمن وغير مؤلم',
     category: 'treatments',
-  },
-  {
-    id: '8',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800',
-    title: 'غرفة العمليات',
-    description: 'تجهيزات طبية متقدمة',
-    category: 'clinic',
   },
 ];
 
