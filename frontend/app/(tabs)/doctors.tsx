@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   TextInput,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,8 +14,9 @@ import { doctorsAPI, appointmentsAPI } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Modal from 'react-native-modal';
+import CustomDatePicker from '../../components/CustomDatePicker';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface Doctor {
   id: string;
