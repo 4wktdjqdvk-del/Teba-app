@@ -54,13 +54,17 @@ export default function DoctorsScreen() {
     fetchDoctors();
   }, []);
 
+  const showAlert = (title: string, message: string, isSuccess: boolean = false) => {
+    setAlertDialog({ visible: true, title, message, isSuccess });
+  };
+
   const fetchDoctors = async () => {
     try {
       const data = await doctorsAPI.getAll();
       setDoctors(data);
     } catch (error) {
       console.error('Error fetching doctors:', error);
-      Alert.alert(t('common.error'), isRTL ? 'فشل تحميل الأطباء' : 'Failed to load doctors');
+      showAlert(t('common.error'), isRTL ? 'فشل تحميل الأطباء' : 'Failed to load doctors');
     }
   };
 
