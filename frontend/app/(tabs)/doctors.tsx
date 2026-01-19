@@ -362,20 +362,18 @@ export default function DoctorsScreen() {
             >
               <Ionicons name="calendar-outline" size={20} color={colors.primary} />
               <Text style={styles.dateText}>
-                {selectedDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB')}
+                {formatDisplayDate(selectedDate)}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display="default"
-              minimumDate={new Date()}
-              onChange={onDateChange}
-            />
-          )}
+          <CustomDatePicker
+            visible={showDatePicker}
+            selectedDate={selectedDate}
+            onDateChange={onDateChange}
+            onClose={() => setShowDatePicker(false)}
+            minimumDate={new Date()}
+          />
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('appointments.time')}</Text>
