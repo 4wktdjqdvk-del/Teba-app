@@ -73,15 +73,6 @@ const galleryData: MediaItem[] = [
   },
   {
     id: '6',
-    type: 'video',
-    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800',
-    title: 'جولة في العيادة',
-    description: 'تعرف على مرافقنا الحديثة',
-    category: 'clinic',
-  },
-  {
-    id: '7',
     type: 'image',
     url: 'https://images.unsplash.com/photo-1445527815219-ecbfec67492e?w=800',
     title: 'عرض خاص',
@@ -89,12 +80,20 @@ const galleryData: MediaItem[] = [
     category: 'offers',
   },
   {
-    id: '8',
+    id: '7',
     type: 'image',
     url: 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=800',
     title: 'علاج جذور الأسنان',
     description: 'علاج آمن وغير مؤلم',
     category: 'treatments',
+  },
+  {
+    id: '8',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800',
+    title: 'غرفة العمليات',
+    description: 'تجهيزات طبية متقدمة',
+    category: 'clinic',
   },
 ];
 
