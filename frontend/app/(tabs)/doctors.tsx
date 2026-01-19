@@ -419,6 +419,58 @@ export default function DoctorsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Alert Dialog */}
+      <Modal
+        isVisible={alertDialog.visible}
+        onBackdropPress={() => setAlertDialog({ ...alertDialog, visible: false })}
+        style={{ margin: 20, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <View style={{
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: 24,
+          width: '100%',
+          maxWidth: 320,
+          alignItems: 'center',
+        }}>
+          <Ionicons 
+            name={alertDialog.isSuccess ? 'checkmark-circle' : 'alert-circle'} 
+            size={50} 
+            color={alertDialog.isSuccess ? colors.success : colors.error}
+            style={{ marginBottom: 16 }}
+          />
+          <Text style={{
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: colors.text,
+            marginBottom: 8,
+            textAlign: 'center',
+          }}>{alertDialog.title}</Text>
+          <Text style={{
+            fontSize: 14,
+            color: colors.textLight,
+            marginBottom: 20,
+            textAlign: 'center',
+            lineHeight: 20,
+          }}>{alertDialog.message}</Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: alertDialog.isSuccess ? colors.success : colors.primary,
+              paddingVertical: 12,
+              paddingHorizontal: 40,
+              borderRadius: 10,
+            }}
+            onPress={() => setAlertDialog({ ...alertDialog, visible: false })}
+          >
+            <Text style={{
+              color: colors.white,
+              fontSize: 16,
+              fontWeight: '600',
+            }}>{isRTL ? 'حسناً' : 'OK'}</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
