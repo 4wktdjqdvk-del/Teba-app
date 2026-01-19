@@ -344,6 +344,29 @@ export default function HomeScreen() {
         <Text style={styles.roleText}>{user?.role?.toUpperCase()}</Text>
       </View>
 
+      {/* Special Offers Section */}
+      {offers.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isRTL ? '🎉 العروض الخاصة' : '🎉 Special Offers'}
+          </Text>
+          {offers.map((offer) => (
+            <View key={offer.id} style={styles.offerCard}>
+              <View style={styles.offerHeader}>
+                <Text style={styles.offerTitle}>{offer.title}</Text>
+                <View style={styles.offerDiscount}>
+                  <Text style={styles.offerDiscountText}>{offer.discount}</Text>
+                </View>
+              </View>
+              <Text style={styles.offerDescription}>{offer.description}</Text>
+              <Text style={styles.offerValidity}>
+                {isRTL ? `صالح حتى: ${offer.valid_until}` : `Valid until: ${offer.valid_until}`}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {clinicInfo && (
         <>
           <View style={styles.section}>
