@@ -385,9 +385,9 @@ export default function GalleryScreen() {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {galleryData.filter(i => i.type === 'video').length}
+              {galleryData.filter(i => i.category === 'clinic').length}
             </Text>
-            <Text style={styles.statLabel}>{isRTL ? 'فيديوهات' : 'Videos'}</Text>
+            <Text style={styles.statLabel}>{isRTL ? 'العيادة' : 'Clinic'}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
