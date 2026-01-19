@@ -84,12 +84,12 @@ export default function DoctorsScreen() {
 
   const submitAppointment = async () => {
     if (!selectedTime) {
-      Alert.alert(t('common.error'), isRTL ? 'يرجى إدخال وقت الموعد' : 'Please enter appointment time');
+      showAlert(t('common.error'), isRTL ? 'يرجى إدخال وقت الموعد' : 'Please enter appointment time');
       return;
     }
 
     if (!user) {
-      Alert.alert(t('common.error'), isRTL ? 'يجب تسجيل الدخول' : 'You must be logged in');
+      showAlert(t('common.error'), isRTL ? 'يجب تسجيل الدخول' : 'You must be logged in');
       return;
     }
 
@@ -109,26 +109,37 @@ export default function DoctorsScreen() {
       };
 
       await appointmentsAPI.create(appointmentData);
-      Alert.alert(
+      setShowModal(false);
+      showAlert(
         t('common.success'), 
         isRTL 
           ? `تم حجز الموعد بنجاح!\n\nستتلقى رسالة تأكيد على ${user.email}`
-          : `Appointment booked successfully!\n\nYou will receive a confirmation email at ${user.email}`
+          : `Appointment booked successfully!\n\nYou will receive a confirmation email at ${user.email}`,
+        true
       );
-      setShowModal(false);
     } catch (error: any) {
       console.error('Error booking appointment:', error);
-      Alert.alert(t('common.error'), error.response?.data?.detail || (isRTL ? 'فشل حجز الموعد' : 'Failed to book appointment'));
+      showAlert(t('common.error'), error.response?.data?.detail || (isRTL ? 'فشل حجز الموعد' : 'Failed to book appointment'));
     } finally {
       setLoading(false);
     }
   };
 
-  const onDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (date) {
-      setSelectedDate(date);
-    }
+  const onDateChange = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  // Format date for display in Gregorian calendar
+  const formatDisplayDate = (date: Date) => {
+    const months = isRTL 
+      ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+      : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return isRTL ? `${day} ${month} ${year}` : `${month} ${day}, ${year}`;
   };
 
   const styles = StyleSheet.create({
