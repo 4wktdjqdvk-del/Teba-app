@@ -554,6 +554,15 @@ export default function AdminScreen() {
             <Text style={styles.actionText}>{t('admin.appSettings')}</Text>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/gallery-management')}
+          >
+            <Ionicons name="images" size={24} color={colors.secondary} />
+            <Text style={styles.actionText}>{isRTL ? 'إدارة المعرض' : 'Gallery Management'}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textLight} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
