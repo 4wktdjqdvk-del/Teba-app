@@ -522,7 +522,7 @@ async def get_all_appointments(limit: int = 100, skip: int = 0):
     ]
 
 @api_router.patch("/appointments/{appointment_id}/status")
-async def update_appointment_status(appointment_id: str, status: str, background_tasks: BackgroundTasks):
+async def update_appointment_status(appointment_id: str, new_status: str, background_tasks: BackgroundTasks):
     # First get the appointment data for email
     appointment = await db.appointments.find_one({"_id": ObjectId(appointment_id)})
     
@@ -531,7 +531,7 @@ async def update_appointment_status(appointment_id: str, status: str, background
     
     result = await db.appointments.update_one(
         {"_id": ObjectId(appointment_id)},
-        {"$set": {"status": status}}
+        {"$set": {"status": new_status}}
     )
     
     if result.modified_count == 0:
@@ -547,7 +547,7 @@ async def update_appointment_status(appointment_id: str, status: str, background
         "time": appointment.get("time", "")
     }
     
-    if status == "confirmed":
+    if new_status == "confirmed":
         background_tasks.add_task(send_appointment_email, appointment_data, "confirmed")
         # Send push notification to patient
         background_tasks.add_task(
