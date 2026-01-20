@@ -541,6 +541,7 @@ async def update_appointment_status(appointment_id: str, status: str, background
     appointment_data = {
         "patient_name": appointment.get("patient_name", ""),
         "patient_email": appointment.get("patient_email", ""),
+        "patient_id": appointment.get("patient_id", ""),
         "doctor_name": appointment.get("doctor_name", ""),
         "date": appointment.get("date", ""),
         "time": appointment.get("time", "")
@@ -548,8 +549,24 @@ async def update_appointment_status(appointment_id: str, status: str, background
     
     if status == "confirmed":
         background_tasks.add_task(send_appointment_email, appointment_data, "confirmed")
+        # Send push notification to patient
+        background_tasks.add_task(
+            send_notification_to_user,
+            appointment_data["patient_id"],
+            "✅ تم تأكيد موعدك!",
+            f"موعدك مع {appointment_data['doctor_name']} يوم {appointment_data['date']} الساعة {appointment_data['time']} مؤكد",
+            {"type": "appointment_confirmed", "appointment_id": appointment_id, "screen": "appointments"}
+        )
     elif status == "cancelled":
         background_tasks.add_task(send_appointment_email, appointment_data, "cancelled")
+        # Send push notification to patient
+        background_tasks.add_task(
+            send_notification_to_user,
+            appointment_data["patient_id"],
+            "❌ تم إلغاء موعدك",
+            f"تم إلغاء موعدك مع {appointment_data['doctor_name']} يوم {appointment_data['date']}",
+            {"type": "appointment_cancelled", "appointment_id": appointment_id, "screen": "appointments"}
+        )
     
     return {"message": "Appointment status updated successfully"}
 
