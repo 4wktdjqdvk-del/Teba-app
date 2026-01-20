@@ -250,58 +250,170 @@ async def get_doctors():
         for doc in doctors
     ]
 
+# Email Configuration
+SMTP_EMAIL = os.environ.get('SMTP_EMAIL', 'teba.s.d.center@gmail.com')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+
 # Helper function to send email notification
-async def send_appointment_email(appointment_data: dict):
-    """Send email notification to clinic about new appointment"""
+def send_email_sync(to_email: str, subject: str, html_body: str):
+    """Send email using Gmail SMTP (synchronous)"""
+    try:
+        if not SMTP_PASSWORD:
+            logger.warning("⚠️ SMTP_PASSWORD not configured, skipping email")
+            return False
+            
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = SMTP_EMAIL
+        msg['To'] = to_email
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"✅ Email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Error sending email: {e}")
+        return False
+
+async def send_appointment_email(appointment_data: dict, email_type: str = "new"):
+    """Send email notification about appointment"""
     try:
         clinic_email = "teba.s.d.center@gmail.com"
+        patient_email = appointment_data.get('patient_email', '')
         
-        # Create email content
-        subject = f"🦷 New Appointment Request - {appointment_data['patient_name']}"
-        
-        body = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2 style="color: #0891B2;">New Appointment Request</h2>
+        if email_type == "new":
+            # Email to clinic about new appointment
+            subject = f"🦷 حجز موعد جديد - {appointment_data['patient_name']}"
+            body = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
+                    <h2 style="color: #0891B2;">📅 طلب حجز موعد جديد</h2>
+                    
+                    <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #0891B2;">
+                        <h3>👤 معلومات المريض:</h3>
+                        <p><strong>الاسم:</strong> {appointment_data['patient_name']}</p>
+                        <p><strong>البريد:</strong> {appointment_data['patient_email']}</p>
+                        <p><strong>الهاتف:</strong> {appointment_data['patient_phone']}</p>
+                    </div>
+                    
+                    <div style="background-color: #ecfdf5; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #10B981;">
+                        <h3>🏥 تفاصيل الموعد:</h3>
+                        <p><strong>الطبيب:</strong> {appointment_data['doctor_name']}</p>
+                        <p><strong>التاريخ:</strong> {appointment_data['date']}</p>
+                        <p><strong>الوقت:</strong> {appointment_data['time']}</p>
+                        {f"<p><strong>ملاحظات:</strong> {appointment_data['notes']}</p>" if appointment_data.get('notes') else ""}
+                    </div>
+                    
+                    <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
+                        تم إرسال هذا البريد تلقائياً من نظام حجز مواعيد مجمع طيبة التخصصي للأسنان
+                    </p>
+                </body>
+            </html>
+            """
+            send_email_sync(clinic_email, subject, body)
+            
+            # Also send confirmation to patient
+            if patient_email:
+                patient_subject = "✅ تم استلام طلب حجزك - مجمع طيبة للأسنان"
+                patient_body = f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
+                        <h2 style="color: #0891B2;">مرحباً {appointment_data['patient_name']} 👋</h2>
+                        
+                        <p style="font-size: 16px;">تم استلام طلب حجزك بنجاح وسيتم التواصل معك قريباً للتأكيد.</p>
+                        
+                        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #0891B2;">
+                            <h3>📋 تفاصيل الموعد:</h3>
+                            <p><strong>الطبيب:</strong> {appointment_data['doctor_name']}</p>
+                            <p><strong>التاريخ:</strong> {appointment_data['date']}</p>
+                            <p><strong>الوقت:</strong> {appointment_data['time']}</p>
+                            <p><strong>الحالة:</strong> <span style="color: #F59E0B;">⏳ قيد الانتظار</span></p>
+                        </div>
+                        
+                        <div style="background-color: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p>📞 للاستفسار: <strong>44163344</strong></p>
+                            <p>📱 واتساب: <strong>66868388</strong></p>
+                        </div>
+                        
+                        <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
+                            مجمع طيبة التخصصي للأسنان - رضاكم هدفنا وابتسامتكم أولويتنا 😊
+                        </p>
+                    </body>
+                </html>
+                """
+                send_email_sync(patient_email, patient_subject, patient_body)
                 
-                <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h3>Patient Information:</h3>
-                    <p><strong>Name:</strong> {appointment_data['patient_name']}</p>
-                    <p><strong>Email:</strong> {appointment_data['patient_email']}</p>
-                    <p><strong>Phone:</strong> {appointment_data['patient_phone']}</p>
-                </div>
+        elif email_type == "confirmed":
+            # Email to patient when appointment is confirmed
+            if patient_email:
+                subject = "✅ تم تأكيد موعدك - مجمع طيبة للأسنان"
+                body = f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
+                        <h2 style="color: #10B981;">🎉 تم تأكيد موعدك!</h2>
+                        
+                        <p style="font-size: 16px;">مرحباً {appointment_data['patient_name']}،</p>
+                        <p>يسعدنا إبلاغك بأنه تم تأكيد موعدك.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #10B981;">
+                            <h3>📋 تفاصيل الموعد المؤكد:</h3>
+                            <p><strong>الطبيب:</strong> {appointment_data['doctor_name']}</p>
+                            <p><strong>التاريخ:</strong> {appointment_data['date']}</p>
+                            <p><strong>الوقت:</strong> {appointment_data['time']}</p>
+                            <p><strong>الحالة:</strong> <span style="color: #10B981;">✅ مؤكد</span></p>
+                        </div>
+                        
+                        <div style="background-color: #DBEAFE; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p>📍 <strong>العنوان:</strong> أبو هامور، الدوحة، قطر</p>
+                            <p>⏰ يرجى الحضور قبل الموعد بـ 10 دقائق</p>
+                        </div>
+                        
+                        <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
+                            مجمع طيبة التخصصي للأسنان - نتطلع لرؤيتك! 😊
+                        </p>
+                    </body>
+                </html>
+                """
+                send_email_sync(patient_email, subject, body)
                 
-                <div style="background-color: #ecfdf5; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h3>Appointment Details:</h3>
-                    <p><strong>Doctor:</strong> {appointment_data['doctor_name']}</p>
-                    <p><strong>Date:</strong> {appointment_data['date']}</p>
-                    <p><strong>Time:</strong> {appointment_data['time']}</p>
-                    {f"<p><strong>Notes:</strong> {appointment_data['notes']}</p>" if appointment_data.get('notes') else ""}
-                </div>
-                
-                <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
-                    This email was sent automatically from TEBA Dental Center appointment system.
-                </p>
-            </body>
-        </html>
-        """
+        elif email_type == "cancelled":
+            # Email to patient when appointment is cancelled
+            if patient_email:
+                subject = "❌ تم إلغاء موعدك - مجمع طيبة للأسنان"
+                body = f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
+                        <h2 style="color: #EF4444;">تم إلغاء الموعد</h2>
+                        
+                        <p style="font-size: 16px;">مرحباً {appointment_data['patient_name']}،</p>
+                        <p>نأسف لإبلاغك بأنه تم إلغاء موعدك.</p>
+                        
+                        <div style="background-color: #FEF2F2; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #EF4444;">
+                            <h3>📋 تفاصيل الموعد الملغي:</h3>
+                            <p><strong>الطبيب:</strong> {appointment_data['doctor_name']}</p>
+                            <p><strong>التاريخ:</strong> {appointment_data['date']}</p>
+                            <p><strong>الوقت:</strong> {appointment_data['time']}</p>
+                        </div>
+                        
+                        <div style="background-color: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p>📞 للحجز مرة أخرى: <strong>44163344</strong></p>
+                            <p>📱 واتساب: <strong>66868388</strong></p>
+                        </div>
+                        
+                        <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
+                            مجمع طيبة التخصصي للأسنان - نأمل رؤيتك قريباً
+                        </p>
+                    </body>
+                </html>
+                """
+                send_email_sync(patient_email, subject, body)
         
-        # For now, just log it (email sending requires SMTP setup)
-        logger.info(f"📧 Email notification: New appointment from {appointment_data['patient_name']}")
-        logger.info(f"Would send to: {clinic_email}")
-        
-        # TODO: Add actual SMTP email sending when credentials are available
-        # Example code:
-        # msg = MIMEMultipart('alternative')
-        # msg['Subject'] = subject
-        # msg['From'] = "noreply@tebadental.com"
-        # msg['To'] = clinic_email
-        # msg.attach(MIMEText(body, 'html'))
-        # 
-        # with smtplib.SMTP('smtp.gmail.com', 587) as server:
-        #     server.starttls()
-        #     server.login(smtp_user, smtp_password)
-        #     server.send_message(msg)
+        logger.info(f"📧 Email notification ({email_type}): {appointment_data['patient_name']}")
         
     except Exception as e:
         logger.error(f"Error sending email: {e}")
