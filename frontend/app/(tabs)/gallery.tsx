@@ -9,6 +9,7 @@ import {
   Dimensions,
   RefreshControl,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
@@ -18,75 +19,16 @@ import Modal from 'react-native-modal';
 const { width } = Dimensions.get('window');
 const imageWidth = (width - 60) / 2;
 
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
 interface MediaItem {
   id: string;
-  type: 'image' | 'video';
   url: string;
-  thumbnail?: string;
   title: string;
   description: string;
   category: string;
+  created_at?: string;
 }
-
-// Sample gallery data - in production, this would come from the backend
-const galleryData: MediaItem[] = [
-  {
-    id: '1',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800',
-    title: 'تبييض الأسنان',
-    description: 'نتائج مذهلة لتبييض الأسنان بالليزر',
-    category: 'treatments',
-  },
-  {
-    id: '2',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800',
-    title: 'زراعة الأسنان',
-    description: 'تقنية زراعة الأسنان الحديثة',
-    category: 'treatments',
-  },
-  {
-    id: '3',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800',
-    title: 'تقويم الأسنان',
-    description: 'تقويم شفاف للحصول على ابتسامة مثالية',
-    category: 'treatments',
-  },
-  {
-    id: '4',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800',
-    title: 'عيادتنا الحديثة',
-    description: 'مرافق متطورة لراحتكم',
-    category: 'clinic',
-  },
-  {
-    id: '5',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1581585744463-7cde76bc7016?w=800',
-    title: 'فينير الأسنان',
-    description: 'ابتسامة هوليوود المثالية مع الفينير',
-    category: 'treatments',
-  },
-  {
-    id: '6',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1445527815219-ecbfec67492e?w=800',
-    title: 'عرض خاص',
-    description: 'خصم 30% على تنظيف الأسنان',
-    category: 'offers',
-  },
-  {
-    id: '7',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=800',
-    title: 'علاج جذور الأسنان',
-    description: 'علاج آمن وغير مؤلم',
-    category: 'treatments',
-  },
-];
 
 const categories = [
   { id: 'all', labelAr: 'الكل', labelEn: 'All' },
@@ -102,8 +44,29 @@ export default function GalleryScreen() {
   
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [galleryData, setGalleryData] = useState<MediaItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  // Fetch gallery data from API
+  const fetchGallery = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/gallery`);
+      if (response.ok) {
+        const data = await response.json();
+        setGalleryData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching gallery:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGallery();
+  }, []);
 
   const filteredMedia = selectedCategory === 'all' 
     ? galleryData 
@@ -111,8 +74,7 @@ export default function GalleryScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // In production, fetch new data here
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await fetchGallery();
     setRefreshing(false);
   };
 
@@ -209,24 +171,6 @@ export default function GalleryScreen() {
       height: imageWidth,
       backgroundColor: colors.background,
     },
-    videoOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: imageWidth,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.3)',
-    },
-    playButton: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: colors.white,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     mediaInfo: {
       padding: 12,
     },
@@ -251,6 +195,14 @@ export default function GalleryScreen() {
       fontSize: 16,
       color: colors.textLight,
       marginTop: 16,
+      textAlign: 'center',
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginTop: 8,
+      textAlign: 'center',
+      opacity: 0.7,
     },
     // Modal styles
     modal: {
@@ -317,13 +269,37 @@ export default function GalleryScreen() {
       color: colors.textLight,
       marginTop: 4,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
   });
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
+            {isRTL ? 'معرض الصور' : 'Photo Gallery'}
+          </Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.emptyText, { marginTop: 16 }]}>
+            {isRTL ? 'جاري التحميل...' : 'Loading...'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {isRTL ? 'معرض الصور والفيديوهات' : 'Media Gallery'}
+          {isRTL ? 'معرض الصور' : 'Photo Gallery'}
         </Text>
         <Text style={styles.headerSubtitle}>
           {isRTL ? 'اكتشف خدماتنا وعروضنا' : 'Discover our services and offers'}
@@ -362,33 +338,39 @@ export default function GalleryScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {galleryData.filter(i => i.category === 'treatments').length}
-            </Text>
-            <Text style={styles.statLabel}>{isRTL ? 'علاجات' : 'Treatments'}</Text>
+        {galleryData.length > 0 && (
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {galleryData.filter(i => i.category === 'treatments').length}
+              </Text>
+              <Text style={styles.statLabel}>{isRTL ? 'علاجات' : 'Treatments'}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {galleryData.filter(i => i.category === 'clinic').length}
+              </Text>
+              <Text style={styles.statLabel}>{isRTL ? 'العيادة' : 'Clinic'}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {galleryData.filter(i => i.category === 'offers').length}
+              </Text>
+              <Text style={styles.statLabel}>{isRTL ? 'عروض' : 'Offers'}</Text>
+            </View>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {galleryData.filter(i => i.category === 'clinic').length}
-            </Text>
-            <Text style={styles.statLabel}>{isRTL ? 'العيادة' : 'Clinic'}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {galleryData.filter(i => i.category === 'offers').length}
-            </Text>
-            <Text style={styles.statLabel}>{isRTL ? 'عروض' : 'Offers'}</Text>
-          </View>
-        </View>
+        )}
 
         {filteredMedia.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="images-outline" size={60} color={colors.textLight} />
+            <Ionicons name="images-outline" size={80} color={colors.textLight} />
             <Text style={styles.emptyText}>
-              {isRTL ? 'لا توجد صور في هذا القسم' : 'No images in this category'}
+              {isRTL ? 'لا توجد صور حالياً' : 'No images yet'}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {isRTL 
+                ? 'يمكن للأدمن إضافة صور من لوحة التحكم' 
+                : 'Admin can add images from the dashboard'}
             </Text>
           </View>
         ) : (
