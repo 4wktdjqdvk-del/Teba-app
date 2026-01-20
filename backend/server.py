@@ -645,6 +645,83 @@ async def delete_offer(offer_id: str):
     
     return {"message": "Offer deleted successfully"}
 
+# ============ Gallery APIs ============
+
+@api_router.get("/gallery", response_model=List[GalleryItemResponse])
+async def get_gallery():
+    """Get all gallery items"""
+    items = await db.gallery.find().sort("created_at", -1).limit(100).to_list(100)
+    return [
+        GalleryItemResponse(
+            id=str(item["_id"]),
+            title=item["title"],
+            description=item["description"],
+            url=item["url"],
+            category=item["category"],
+            created_at=item.get("created_at", "")
+        )
+        for item in items
+    ]
+
+@api_router.get("/gallery/{category}")
+async def get_gallery_by_category(category: str):
+    """Get gallery items by category"""
+    if category == "all":
+        items = await db.gallery.find().sort("created_at", -1).limit(100).to_list(100)
+    else:
+        items = await db.gallery.find({"category": category}).sort("created_at", -1).limit(100).to_list(100)
+    
+    return [
+        {
+            "id": str(item["_id"]),
+            "title": item["title"],
+            "description": item["description"],
+            "url": item["url"],
+            "category": item["category"],
+            "created_at": item.get("created_at", "")
+        }
+        for item in items
+    ]
+
+@api_router.post("/gallery", response_model=GalleryItemResponse)
+async def create_gallery_item(item: GalleryItemCreate):
+    """Add new image to gallery (Admin only)"""
+    item_dict = item.dict()
+    item_dict["created_at"] = datetime.utcnow().isoformat()
+    
+    result = await db.gallery.insert_one(item_dict)
+    item_dict["id"] = str(result.inserted_id)
+    
+    return GalleryItemResponse(**item_dict)
+
+@api_router.put("/gallery/{item_id}")
+async def update_gallery_item(item_id: str, item: GalleryItemCreate):
+    """Update gallery item (Admin only)"""
+    result = await db.gallery.update_one(
+        {"_id": ObjectId(item_id)},
+        {"$set": {
+            "title": item.title,
+            "description": item.description,
+            "url": item.url,
+            "category": item.category
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Gallery item not found")
+    
+    return {"message": "Gallery item updated successfully"}
+
+@api_router.delete("/gallery/{item_id}")
+async def delete_gallery_item(item_id: str):
+    """Delete gallery item (Admin only)"""
+    result = await db.gallery.delete_one({"_id": ObjectId(item_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Gallery item not found")
+    
+    return {"message": "Gallery item deleted successfully"}
+
 # Clinic Info
 @api_router.get("/clinic-info")
 async def get_clinic_info():
