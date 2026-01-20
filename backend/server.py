@@ -684,6 +684,194 @@ async def delete_staff_user(user_id: str):
     
     return {"message": "Staff member deleted successfully"}
 
+# ============ Push Notifications APIs ============
+
+# Helper function to send push notification via Expo
+import httpx
+
+async def send_push_notification(tokens: List[str], title: str, body: str, data: dict = None):
+    """Send push notification via Expo Push API"""
+    try:
+        if not tokens:
+            logger.info("No push tokens to send to")
+            return
+        
+        messages = []
+        for token in tokens:
+            if token.startswith('ExponentPushToken'):
+                message = {
+                    "to": token,
+                    "sound": "default",
+                    "title": title,
+                    "body": body,
+                    "data": data or {},
+                }
+                messages.append(message)
+        
+        if not messages:
+            logger.info("No valid Expo push tokens found")
+            return
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://exp.host/--/api/v2/push/send",
+                json=messages,
+                headers={
+                    "Accept": "application/json",
+                    "Accept-Encoding": "gzip, deflate",
+                    "Content-Type": "application/json",
+                }
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"🔔 Push notifications sent successfully to {len(messages)} devices")
+            else:
+                logger.error(f"Push notification failed: {response.text}")
+                
+    except Exception as e:
+        logger.error(f"Error sending push notification: {e}")
+
+async def send_notification_to_role(role: str, title: str, body: str, data: dict = None):
+    """Send push notification to all users with a specific role"""
+    try:
+        tokens = await db.push_tokens.find({"user_role": role}).to_list(100)
+        token_list = [t["token"] for t in tokens]
+        await send_push_notification(token_list, title, body, data)
+    except Exception as e:
+        logger.error(f"Error sending notification to role {role}: {e}")
+
+async def send_notification_to_user(user_id: str, title: str, body: str, data: dict = None):
+    """Send push notification to a specific user"""
+    try:
+        tokens = await db.push_tokens.find({"user_id": user_id}).to_list(10)
+        token_list = [t["token"] for t in tokens]
+        await send_push_notification(token_list, title, body, data)
+    except Exception as e:
+        logger.error(f"Error sending notification to user {user_id}: {e}")
+
+async def send_notification_to_admins(title: str, body: str, data: dict = None):
+    """Send push notification to all admins and receptionists"""
+    try:
+        tokens = await db.push_tokens.find({
+            "user_role": {"$in": ["admin", "receptionist", "doctor"]}
+        }).to_list(100)
+        token_list = [t["token"] for t in tokens]
+        await send_push_notification(token_list, title, body, data)
+    except Exception as e:
+        logger.error(f"Error sending notification to admins: {e}")
+
+# Register push token
+@api_router.post("/push-tokens")
+async def register_push_token(token_data: PushTokenCreate):
+    try:
+        # Check if token already exists
+        existing = await db.push_tokens.find_one({"token": token_data.token})
+        
+        if existing:
+            # Update existing token
+            await db.push_tokens.update_one(
+                {"token": token_data.token},
+                {"$set": {
+                    "user_id": token_data.user_id,
+                    "user_role": token_data.user_role,
+                    "platform": token_data.platform,
+                    "updated_at": datetime.utcnow().isoformat()
+                }}
+            )
+            return {"message": "Push token updated successfully"}
+        else:
+            # Insert new token
+            await db.push_tokens.insert_one({
+                "token": token_data.token,
+                "user_id": token_data.user_id,
+                "user_role": token_data.user_role,
+                "platform": token_data.platform,
+                "created_at": datetime.utcnow().isoformat()
+            })
+            return {"message": "Push token registered successfully"}
+            
+    except Exception as e:
+        logger.error(f"Error registering push token: {e}")
+        raise HTTPException(status_code=500, detail="Failed to register push token")
+
+# Delete push token (on logout)
+@api_router.delete("/push-tokens/{token}")
+async def delete_push_token(token: str):
+    try:
+        result = await db.push_tokens.delete_one({"token": token})
+        if result.deleted_count > 0:
+            return {"message": "Push token deleted successfully"}
+        return {"message": "Token not found"}
+    except Exception as e:
+        logger.error(f"Error deleting push token: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete push token")
+
+# Send notification (admin only)
+@api_router.post("/notifications/send")
+async def send_notification(notification: PushNotificationSend, background_tasks: BackgroundTasks):
+    try:
+        if notification.target_user_id:
+            # Send to specific user
+            background_tasks.add_task(
+                send_notification_to_user,
+                notification.target_user_id,
+                notification.title,
+                notification.body,
+                notification.data
+            )
+        elif notification.target_role:
+            if notification.target_role == "all":
+                # Send to everyone
+                tokens = await db.push_tokens.find().to_list(500)
+                token_list = [t["token"] for t in tokens]
+                background_tasks.add_task(
+                    send_push_notification,
+                    token_list,
+                    notification.title,
+                    notification.body,
+                    notification.data
+                )
+            else:
+                # Send to specific role
+                background_tasks.add_task(
+                    send_notification_to_role,
+                    notification.target_role,
+                    notification.title,
+                    notification.body,
+                    notification.data
+                )
+        
+        return {"message": "Notification queued for sending"}
+        
+    except Exception as e:
+        logger.error(f"Error sending notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send notification")
+
+# Send new offer notification to all patients
+@api_router.post("/notifications/new-offer")
+async def notify_new_offer(title: str, description: str, discount: str, background_tasks: BackgroundTasks):
+    try:
+        notification_title = f"🎁 عرض جديد: {title}"
+        notification_body = f"{description}\n{discount}"
+        
+        # Get all patient tokens
+        tokens = await db.push_tokens.find({"user_role": "patient"}).to_list(500)
+        token_list = [t["token"] for t in tokens]
+        
+        background_tasks.add_task(
+            send_push_notification,
+            token_list,
+            notification_title,
+            notification_body,
+            {"type": "new_offer", "screen": "home"}
+        )
+        
+        return {"message": "Offer notification queued for sending"}
+        
+    except Exception as e:
+        logger.error(f"Error sending offer notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send notification")
+
 # Include the router in the main app
 app.include_router(api_router)
 
