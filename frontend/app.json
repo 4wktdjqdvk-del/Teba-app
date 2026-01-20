@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tebadental.app",
+      "bundleIdentifier": "app.emergent.taiba-clinic222b89dc",
       "infoPlist": {
         "NSCameraUsageDescription": "Take photos for dental records",
         "NSPhotoLibraryUsageDescription": "Select photos for appointments",
@@ -20,7 +20,7 @@
       }
     },
     "android": {
-      "package": "com.tebadental.app",
+      "package": "app.emergent.taiba_clinic222b89dc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0891B2"
@@ -38,8 +38,7 @@
         "WAKE_LOCK",
         "POST_NOTIFICATIONS"
       ],
-      "edgeToEdgeEnabled": true,
-      "googleServicesFile": "./google-services.json"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -62,18 +61,12 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#0891B2",
-          "sounds": ["./assets/sounds/notification.wav"],
           "defaultChannel": "default"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "teba-dental-center"
-      }
     }
   }
 }
