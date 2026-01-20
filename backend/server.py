@@ -445,6 +445,14 @@ async def create_appointment(appointment: AppointmentCreate, background_tasks: B
     # Send email notification in background
     background_tasks.add_task(send_appointment_email, appointment_dict)
     
+    # Send push notification to clinic staff
+    background_tasks.add_task(
+        send_notification_to_admins,
+        f"📅 حجز جديد: {appointment.patient_name}",
+        f"موعد مع {appointment.doctor_name} - {appointment.date} الساعة {appointment.time}",
+        {"type": "new_appointment", "appointment_id": appointment_dict["id"], "screen": "appointments"}
+    )
+    
     return AppointmentResponse(**appointment_dict)
 
 @api_router.get("/appointments/patient/{patient_id}", response_model=List[AppointmentResponse])
