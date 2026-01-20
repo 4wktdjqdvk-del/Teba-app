@@ -557,7 +557,7 @@ async def update_appointment_status(appointment_id: str, new_status: str, backgr
             f"موعدك مع {appointment_data['doctor_name']} يوم {appointment_data['date']} الساعة {appointment_data['time']} مؤكد",
             {"type": "appointment_confirmed", "appointment_id": appointment_id, "screen": "appointments"}
         )
-    elif status == "cancelled":
+    elif new_status == "cancelled":
         background_tasks.add_task(send_appointment_email, appointment_data, "cancelled")
         # Send push notification to patient
         background_tasks.add_task(
