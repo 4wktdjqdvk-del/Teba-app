@@ -95,6 +95,21 @@ class OfferResponse(BaseModel):
     discount: str
     valid_until: str
 
+# Gallery Models
+class GalleryItemCreate(BaseModel):
+    title: str
+    description: str
+    url: str
+    category: str  # treatments, clinic, offers
+
+class GalleryItemResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    url: str
+    category: str
+    created_at: str
+
 # Push Notification Models
 class PushTokenCreate(BaseModel):
     token: str
