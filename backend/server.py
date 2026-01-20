@@ -500,7 +500,13 @@ async def get_all_appointments(limit: int = 100, skip: int = 0):
     ]
 
 @api_router.patch("/appointments/{appointment_id}/status")
-async def update_appointment_status(appointment_id: str, status: str):
+async def update_appointment_status(appointment_id: str, status: str, background_tasks: BackgroundTasks):
+    # First get the appointment data for email
+    appointment = await db.appointments.find_one({"_id": ObjectId(appointment_id)})
+    
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
     result = await db.appointments.update_one(
         {"_id": ObjectId(appointment_id)},
         {"$set": {"status": status}}
@@ -508,6 +514,20 @@ async def update_appointment_status(appointment_id: str, status: str):
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Send email notification based on status change
+    appointment_data = {
+        "patient_name": appointment.get("patient_name", ""),
+        "patient_email": appointment.get("patient_email", ""),
+        "doctor_name": appointment.get("doctor_name", ""),
+        "date": appointment.get("date", ""),
+        "time": appointment.get("time", "")
+    }
+    
+    if status == "confirmed":
+        background_tasks.add_task(send_appointment_email, appointment_data, "confirmed")
+    elif status == "cancelled":
+        background_tasks.add_task(send_appointment_email, appointment_data, "cancelled")
     
     return {"message": "Appointment status updated successfully"}
 
