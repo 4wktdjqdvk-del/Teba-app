@@ -596,12 +596,28 @@ async def get_offers():
     ]
 
 @api_router.post("/offers", response_model=OfferResponse)
-async def create_offer(offer: OfferCreate):
+async def create_offer(offer: OfferCreate, background_tasks: BackgroundTasks):
     offer_dict = offer.dict()
     offer_dict["created_at"] = datetime.utcnow().isoformat()
     
     result = await db.offers.insert_one(offer_dict)
     offer_dict["id"] = str(result.inserted_id)
+    
+    # Send push notification to all patients about new offer
+    async def notify_patients_about_offer():
+        try:
+            tokens = await db.push_tokens.find({"user_role": "patient"}).to_list(500)
+            token_list = [t["token"] for t in tokens]
+            await send_push_notification(
+                token_list,
+                f"🎁 عرض جديد: {offer.title}",
+                f"{offer.description}\n💰 {offer.discount}",
+                {"type": "new_offer", "offer_id": offer_dict["id"], "screen": "home"}
+            )
+        except Exception as e:
+            logger.error(f"Error notifying patients about offer: {e}")
+    
+    background_tasks.add_task(notify_patients_about_offer)
     
     return OfferResponse(**offer_dict)
 
