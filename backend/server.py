@@ -95,6 +95,20 @@ class OfferResponse(BaseModel):
     discount: str
     valid_until: str
 
+# Push Notification Models
+class PushTokenCreate(BaseModel):
+    token: str
+    user_id: str
+    user_role: str
+    platform: str
+
+class PushNotificationSend(BaseModel):
+    title: str
+    body: str
+    data: Optional[dict] = None
+    target_role: Optional[str] = None  # admin, doctor, patient, all
+    target_user_id: Optional[str] = None
+
 # Initialize default data
 async def init_default_data():
     # Check if doctors already exist
