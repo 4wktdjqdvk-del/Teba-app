@@ -15,7 +15,8 @@
         "NSCameraUsageDescription": "Take photos for dental records",
         "NSPhotoLibraryUsageDescription": "Select photos for appointments",
         "NSLocationWhenInUseUsageDescription": "Find clinic location",
-        "NSCalendarsUsageDescription": "Add appointments to calendar"
+        "NSCalendarsUsageDescription": "Add appointments to calendar",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -31,9 +32,14 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "READ_CALENDAR",
-        "WRITE_CALENDAR"
+        "WRITE_CALENDAR",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "POST_NOTIFICATIONS"
       ],
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -50,10 +56,24 @@
           "resizeMode": "contain",
           "backgroundColor": "#0891B2"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#0891B2",
+          "sounds": ["./assets/sounds/notification.wav"],
+          "defaultChannel": "default"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "teba-dental-center"
+      }
     }
   }
 }
