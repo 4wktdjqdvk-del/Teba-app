@@ -3,63 +3,76 @@
 **original_problem_statement**:
 The user wants to build a comprehensive mobile app for a dental polyclinic named مجمع طيبة التخصصي للأسنان (Taiba Specialized Dental Center). The initial version had numerous non-functional features and UI/UX issues.
 
+During this session, the user requested the following fixes and features:
+- Fix all non-functional buttons for admin actions (confirm/cancel appointments, delete offers) which did not work on the web preview.
+- Add a language switcher (Arabic/English) to the guest login page.
+- Fix the non-functional Logout button.
+- Address deployment issues and confusion regarding App Store vs. Web deployment.
+- Assist with linking a custom GoDaddy domain ().
+- Create and add a Gallery page for treatments and offers.
+- Add a Special Offers section to the main home page for all users.
+- Fix a bug where the appointment booking date picker showed a black screen on the web and used the Hijri calendar.
+- Remove the Videos functionality from the gallery.
+- Implement email and WhatsApp notifications for appointments.
+
 **PRODUCT REQUIREMENTS (as of this session):**
 - **Core Functionality:**
-    - The app must be fully translated into Arabic and English, with a functional language switcher.
-    - A dark/light mode theme switcher must be implemented and functional across the app.
-    - Clinic name must be corrected to مجمع طيبة التخصصي للأسنان and TEBA SPECIALIZED DENTAL CENTER in all relevant places.
-    - The Settings page must be redesigned to show clinic contact info, working hours, special offers, and language/theme controls, while removing the Backup Data option.
-    - All users, including guests, must have a Logout button.
-    - For guest users, the profile tab should not be empty and the appointments tab should be hidden.
-    - Staff login credentials must not be visible on any public screen.
+    - All admin and user actions (booking, confirming, deleting) must be fully functional on the web preview, with clear confirmation dialogs.
+    - The login page must have a language switcher.
+    - The app must have a gallery to display images of treatments and offers.
+    - The home page must display current special offers to all users.
+    - The date picker for appointments must use the Gregorian calendar and be web-compatible.
+    - The backend must be persistent and not rely on hardcoded data (Outstanding).
+    - Appointment actions should trigger email notifications to the user/admin (Blocked).
 - **Future Requests:**
     - Implement Push Notifications.
-    - Create a separate website with the same design and functionality.
+    - Create a separate website with the same design and functionality (Partially addressed by making the Expo app web-compatible).
 
 **User's preferred language**: Arabic (عربي). The next agent MUST respond in Arabic.
 
 **what currently exists?**
-The application is a full-stack Expo (React Native) and FastAPI project. Most of the user's UI/UX requests from this session have been implemented. The app is now fully translated (Arabic/English) with a working language selector, and features a functional dark/light mode. The clinic's name and branding have been corrected throughout the UI and backend. The settings page has been completely redesigned as per user specifications. A logout function has been added for all user roles. Role-based UI for guests is correctly implemented (hiding the appointments tab).
+The application is a full-stack Expo (React Native) and FastAPI project. All user-facing UI/UX issues reported in this session have been resolved. The admin action buttons (confirm/cancel appointments, delete offers) and the logout button now work correctly on the web, using a custom-built confirmation dialog (). A language switcher has been added to the login page. A new Gallery page has been created and populated, and a Special Offers section now dynamically displays offers on the home page. The appointment booking date picker has been replaced with a custom, web-compatible component () that uses the Gregorian calendar and no longer causes a black screen. A floating WhatsApp button has been added for easy contact.
 
-However, the backend still relies on hardcoded data within  instead of a persistent database for most operations. Critical security issues found during a health check (password exposure, lack of pagination) have been fixed. The core functionality for admins/staff (confirming/canceling appointments, adding/deleting offers) remains unverified after the major UI overhaul.
+However, the backend still uses hardcoded, in-memory Python lists in  as a mock database. No data is persistent. The implementation of email notifications is blocked, pending user input.
 
 **Last working item**:
-    - Last item agent was working: The agent was attempting to provide the user with a downloadable ZIP file of the entire source code. This failed due to environment limitations which prevent serving static files for download. The agent then resorted to displaying the content of all major files directly in the chat for the user to copy.
+    - Last item agent was working: The agent was working on implementing notifications. It successfully added a floating WhatsApp button that links to the clinic's number. For email notifications, it has requested an App Password for the user's Gmail account () to configure the email service.
     - Status: BLOCKED
-    - Agent Testing Done: N/A (This was a file delivery task, not a code change).
-    - Which testing method agent to use? N/A
-    - User Testing Done: N/A
+    - Agent Testing Done: Y (The WhatsApp button was verified to be present. Email is not implemented yet).
+    - Which testing method agent to use? manual testing by curl
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Core Admin/Staff Actions are Unverified and Likely Still Broken (P0 - HIGHEST PRIORITY)
-  - Issue 2: Backend Relies on Hardcoded Data (P1)
+  - Issue 1: Backend Relies on Hardcoded Data (P0 - CRITICAL)
+  - Issue 2: Implement Email Notifications (P1 - BLOCKED)
   
   **Issues Detail:**
-  - **Issue 1: Core Admin/Staff Actions are Unverified and Likely Still Broken (P0 - HIGHEST PRIORITY)**
-     - **Description**: The initial problem statement highlighted that admins/staff could not confirm/cancel appointments or manage offers from the UI. The agent focused on UI, translation, and theme fixes but never returned to test if this core business logic works. The buttons exist, but their  handlers in  and  are likely still not functioning correctly.
-     - **Attempted fixes:** None in this session. This was a missed issue from the original problem statement.
+  - **Issue 1: Backend Relies on Hardcoded Data (P0 - CRITICAL)**
+     - **Description**: The entire backend in  uses hardcoded Python lists and dictionaries as a mock database. This is the most significant remaining architectural flaw. Any changes made in the app (new appointments, deleted offers) are lost when the server restarts.
+     - **Attempted fixes:** None in this session. This issue was carried over from the previous fork.
      - **Next debug checklist:**
-       1.  Log in as admin ( / ).
-       2.  Navigate to the Admin panel () and try to delete an offer. Check the browser's developer console (Network tab) to see if the  request is sent and what the response is.
-       3.  Navigate to the Appointments list () and try to confirm or cancel an appointment. Check the developer console for the  request.
-       4.  Debug the  and  functions in their respective files to fix any errors in the API calls or subsequent state updates.
-     - **Why fix this issue and what will be achieved with the fix?** This is the most critical business function for the clinic staff. Fixing it will make the app usable for its primary internal users.
+       1.  Establish a persistent connection to the MongoDB instance using .
+       2.  Refactor every API endpoint in  (e.g., , , , ) to perform CRUD operations on the MongoDB collections (, , ) instead of manipulating in-memory lists.
+       3.  Ensure the  function correctly seeds the database only if it's empty, to prevent data wipes on restart.
+     - **Why fix this issue and what will be achieved with the fix?** This will transform the application from a UI demo into a functional, stateful application where clinic data is saved persistently. It is essential for production use.
      - **Status:** NOT STARTED
      - **Is recurring issue?** Y
      - **Should Test frontend/backend/both after fix?** Both.
      - **Blocked on other issue:** None.
 
-  - **Issue 2: Backend Relies on Hardcoded Data (P1)**
-     - **Description**: The entire backend in  uses hardcoded Python lists and dictionaries as a mock database. This means no data is persistent; any changes are lost on server restart.
-     - **Attempted fixes**: None. This is the next logical architectural step.
+  - **Issue 2: Implement Email Notifications (P1 - BLOCKED)**
+     - **Description**: The user wants email notifications to be sent when an appointment is booked, confirmed, or canceled. The agent has identified the need for an email service.
+     - **Attempted fixes**: The agent requested an App Password for the user's Gmail account (). The work cannot proceed without this credential.
      - **Next debug checklist:**
-       1.  Establish a persistent connection to the MongoDB instance using  for all API routes.
-       2.  Refactor every API endpoint in  (e.g., , , ) to perform CRUD operations on the MongoDB collections (, , , etc.) instead of manipulating in-memory lists.
-       3.  Ensure the  function correctly seeds the database only if it's empty.
-     - **Why fix this issue and what will be achieved with the fix?** This will transform the application from a mock-UI demo into a functional, stateful application where data persists.
-     - **Status:** NOT STARTED
+       1.  Ask the user again for the 16-character Google App Password.
+       2.  Once received, add the credentials to the backend environment variables.
+       3.  In , create a function .
+       4.  Use Python's  and  modules to connect to Google's SMTP server and send emails.
+       5.  Integrate this  function into the relevant API endpoints: , .
+     - **Why fix this issue and what will be achieved with the fix?** It will provide essential communication with patients and admins, confirming appointments and changes automatically.
+     - **Status:** BLOCKED (waiting for user credentials)
      - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** Both.
+     - **Should Test frontend/backend/both after fix?** Backend (verify emails are sent).
      - **Blocked on other issue:** None.
 
 **In progress Task List**:
@@ -67,32 +80,39 @@ However, the backend still relies on hardcoded data within  instead of a persist
 
 **Upcoming and Future Tasks**
     **Upcoming Tasks:**
-    - **P1: Implement Push Notifications:** The user has approved this feature. This will require setting up  and potentially a service like Firebase (FCM). (Files: new service module, changes in , ).
-    - **P2: Editable Clinic Information UI:** Create a new screen for the Admin to edit clinic info (contact details, hours) and connect it to a new backend endpoint to persist these changes in the database. (Files: new admin screen, ).
-    - **P2: Full Staff Management UI:** Create a UI for Admins to Add/Edit/Delete staff members, connecting to the backend APIs. (Files: new admin screen, ).
+    - **P1: Link GoDaddy Domain:** The user has purchased  and wants to link it. The user is currently locked out of their GoDaddy account. Once they regain access, the agent will need to guide them through setting up DNS records (either / records for a full deployment or  to the preview URL).
+    - **P2: Implement Push Notifications:** This was a requirement from the beginning. It will require adding , configuring  correctly (and ensuring the Apple provisioning profile supports it), and implementing logic to send notifications from the backend. (Files: , new backend logic in ).
 
     **Future Tasks:**
-    - **P3: Build a Website Version:** The user has expressed interest in a web version of the app. This would be a separate project, likely using Next.js or a similar framework.
+    - **P2: Editable Clinic Information UI:** Create a new screen for the Admin to edit clinic info (contact details, hours) and connect it to a new backend endpoint to persist these changes in the database.
+    - **P3: Full Staff Management UI:** Create a UI for Admins to Add/Edit/Delete staff members, connecting to the backend APIs.
 
 **Completed work in this session**
-- **Full I18n Implementation:** App is now fully bilingual (Arabic/English) with a working language switcher in settings.
-- **Dark/Light Mode:** A functional, app-wide theme switcher has been implemented.
-- **Major UI/UX Fixes:**
-  - Corrected clinic name to مجمع طيبة التخصصي للأسنان.
-  - Completely redesigned the  page to user specifications.
-  - Added a Logout button for all user roles, including guests.
-  - Corrected tab visibility for guest users.
-- **Backend Security Hardening:**
-  - Fixed API endpoints to stop exposing user passwords.
-  - Implemented pagination and sorting for the appointments endpoint.
+- **Fixed All Web-Compatibility UI Issues:**
+  - Replaced all  calls with a custom, web-compatible modal () for deleting offers, confirming/canceling appointments, and logging out.
+  - Replaced the native date picker with a custom, web-compatible Gregorian calendar component () for booking appointments, fixing the black screen bug.
+- **New Features Implemented:**
+  - Added a language switcher to the login/guest page.
+  - Added a Special Offers section to the home page that dynamically displays offers from the backend.
+  - Created a new Gallery page with image filtering capabilities.
+  - Added a floating WhatsApp button on all tab screens for easy contact.
+- **Content Updates:**
+  - Removed the Videos section and data from the Gallery page as requested.
+  - Updated the image for the Veneers treatment in the gallery.
+- **Backend Improvements:**
+  - Optimized several database queries in  with pagination and limits, as suggested by the health check agent.
+- **User Support:**
+  - Clarified the difference between Web Deployment and App Store deployment.
+  - Guided the user on how to get the source code via Save to GitHub.
+  - Provided a workaround for linking the GoDaddy domain via forwarding.
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1: Core Admin actions are non-functional.** As detailed in the All Pending/In progress Issue list, this critical issue from the initial handover was overlooked and never verified as fixed. It should be treated as still broken.
+   - **Issue 1: Backend still uses mocked, non-persistent data.** This is the most critical unresolved issue, now tracked as P0 in the pending list.
 
 **Known issue recurrence from previous fork**
-  - **Issue recurrence in previous fork:** Non-functional buttons for core admin actions (appointment confirmation, offer deletion).
-  - **Recurrence count:** High (at least 3).
-  - **Status:** NOT STARTED (Presumed broken).
+  - **Issue recurrence in previous fork:** Non-functional buttons for core admin actions on the web.
+  - **Recurrence count:** High.
+  - **Status:** RESOLVED. The agent successfully fixed this by implementing a custom confirmation dialog that works on both native and web.
 
 **Code Architecture**
 
@@ -100,61 +120,69 @@ However, the backend still relies on hardcoded data within  instead of a persist
 **Key Technical Concepts**
 - **Frontend:** React Native, Expo, Expo Router, TypeScript
 - **Backend:** Python, FastAPI
-- **Database:** Mocked in-memory data (intended to be MongoDB).
-- **State Management:** React Context API (for Auth and Theme).
-- **Styling:** React Native , dynamic styling for themes.
-- **API Communication:** Axios
-- **Localization:** , 
+- **Database:** Mocked in-memory data in  (intended to be MongoDB).
+- **State Management:** React Context API (Auth, Theme).
+- **Styling:** React Native , dynamic styles for themes.
+- **Web Compatibility:** Created custom components (, ) to overcome limitations of React Native Web.
 
 **key DB schema**
-Schema is still inferred from the hardcoded data in :
+The schema is still inferred from the hardcoded data in :
 - **users:** 
 - **appointments:** 
 - **offers:** 
 - **clinic_info:** 
 
+**changes in tech stack**
+- No major changes, but significant custom component development to ensure web compatibility.
+
 **All files of reference**
-- : Contains UI for offer management. **Delete button needs verification.**
-- : Contains UI for appointment management. **Confirm/Cancel buttons need verification.**
-- : Contains all backend logic. Still uses hardcoded data but security fixes have been applied. Needs migration to a real DB.
-- : Completely rewritten to match user requirements.
-- , : Now fully implemented and integrated across the app.
-- All files in : Have been refactored to use the  hook and dynamic theme-based styles.
+- **New Components:**
+  - : Created to replace  for web compatibility.
+  - : Created to replace the default date picker, fixing the black screen bug on web.
+  - : Created to add a floating contact button.
+- **Updated Core Files:**
+  - : Integrated  for deleting offers.
+  - : Integrated  for status updates.
+  - : Integrated  for booking.
+  - : Integrated  for logout.
+  - : Added a language switcher.
+  - : Added a section to display special offers.
+- **Backend:**
+  - : API endpoints were optimized, but still use hardcoded data. This file needs a major refactor for DB persistence.
 
 **Critical Info for New Agent**
 - You **MUST** communicate with the user in **Arabic**.
-- **TOP PRIORITY:** Immediately investigate and fix the core admin functions: confirming/canceling appointments and deleting offers. Do not assume they work. This was the main unresolved issue from the start.
-- The next major architectural task is to migrate the backend from hardcoded data in  to use the MongoDB database for all data persistence.
-- The user has been having trouble with preview links. Ensure you provide the correct, working link and guide the user on how to test, possibly advising them to clear their browser cache or use an incognito window to avoid stale session issues.
-- The user wants a downloadable ZIP file of the source code. The environment has limitations preventing this. If requested again, politely explain the limitation and recommend using the Push to GitHub feature or offer to display the code for manual copying again.
+- **TOP PRIORITY (P0):** The backend in  is still using hardcoded lists. Your first major task should be to migrate all data operations to the persistent MongoDB database. The app is not production-ready without this.
+- **BLOCKED TASK (P1):** The user wants email notifications. You are waiting for them to provide a 16-character **Google App Password** for . Do not proceed without this. Do not ask for their regular password.
+- **User's External Issues:** The user has trouble with their GoDaddy account (locked out) and with understanding the Save to GitHub feature. Be prepared to offer clear, step-by-step guidance on these external platform issues. The current workaround for the domain is to have them use GoDaddy's Forwarding feature to the preview URL.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. **User (Latest):** Provides their email address to receive the source code.
-2. **Agent:** Explains it cannot send emails and offers to show all code in a single block.
-3. **User:** Asks for the ZIP file again.
-4. **Agent:** Tries to create and serve a  file, but acknowledges it can't provide a direct download link due to environment limitations, and lists alternative solutions (GitHub, manual copy).
-5. **User:** Page could not be found when trying to download the ZIP file.
-6. **Agent:** Confirms the ZIP file was created locally.
-7. **User:** Asks to create a ZIP file.
-8. **Agent:** Explains how the Push to GitHub feature works, noting it's a paid feature.
-9. **User:** Asks where to find the Push to GitHub button and why the appointment limit was changed.
-10. **Agent:** Reports that all security issues are fixed and summarizes the changes.
+1.  **User (Latest):** Reports that after uploading the site to GoDaddy, the date picker is not working and the calendar is not Gregorian. (This was fixed).
+2.  **User:** Provides GoDaddy security verification screenshot, showing they are locked out for 7 days.
+3.  **User:** Asks for a ZIP file of all files to upload to their GoDaddy site.
+4.  **User:** Says their preview link is asking for an email confirmation that isn't theirs.
+5.  **User:** Asks how to benefit from the working preview link.
+6.  **User:** States the deployed link () is not working.
+7.  **User:** Shares a screenshot of the QR code page (Expo Go preview), mistaking it for the deployed site.
+8.  **User:** Shares a screenshot of the Live deployment status page.
+9.  **User:** Asks where to find the Link Domain button after deployment.
+10. **User:** Informs the agent that they have created the  domain.
 
 **Project Health Check:**
-- **Broken:** The state of core admin actions (Appointment & Offer Management) is **UNVERIFIED** and should be considered broken until proven otherwise.
-- **Mocked:** The entire backend data layer. All data is hardcoded in  and is not persistent.
+- **Broken:** None. All reported UI bugs have been fixed.
+- **Mocked:** The entire backend data layer in . This is the single biggest point of failure for a production app.
 
 **3rd Party Integrations**
-- None configured with API keys.
+- **GoDaddy:** User owns a domain and needs help linking it.
+- **Gmail:** Planned for email notifications, but blocked waiting for user's App Password.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, the  was used to run a health check, which successfully identified critical backend security flaws.
+- **Testing agent used after significant changes:** YES,  was used multiple times.
 - **Troubleshoot agent used after agent stuck in loop:** NO.
 - **Test files created:** None.
-- **Known regressions:** None, but there is a major **unverified feature** (core admin actions) that has been a known problem since the first fork.
+- **Known regressions:** None. All fixes have been verified.
 
 **What agent forgot to execute**
-- The agent never circled back to test and fix the original, highest-priority problem: non-functional buttons for admin appointment and offer management. It got focused on the user's immediate UI feedback and forgot the core business logic issue.
-- The agent failed to provide the user with the source code in a downloadable format, although this was due to platform limitations rather than forgetfulness.
+- The agent did not implement the migration from a mock backend to a persistent MongoDB database. This was the highest priority technical task from the previous fork and remains so.
 
 </analysis>

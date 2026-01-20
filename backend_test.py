@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Get backend URL from environment
-BACKEND_URL = "https://taiba-clinic.preview.emergentagent.com/api"
+BACKEND_URL = "https://taiba-smile.preview.emergentagent.com/api"
 
 class TEBABackendTester:
     def __init__(self):

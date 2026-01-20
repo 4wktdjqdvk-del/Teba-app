@@ -6,7 +6,7 @@ Test different login scenarios for teba.s.d.center@gmail.com
 import requests
 import json
 
-BACKEND_URL = "https://taiba-clinic.preview.emergentagent.com/api"
+BACKEND_URL = "https://taiba-smile.preview.emergentagent.com/api"
 
 def test_login(password, expected_role):
     login_data = {
