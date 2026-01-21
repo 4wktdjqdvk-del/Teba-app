@@ -80,3 +80,7 @@ android-sdk/
 .expo/
 *.jks
 *.keystore
+-e 
+# Environment files
+*.env
+*.env.*
