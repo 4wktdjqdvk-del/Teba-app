@@ -15,8 +15,7 @@
         "NSCameraUsageDescription": "Take photos for dental records",
         "NSPhotoLibraryUsageDescription": "Select photos for appointments",
         "NSLocationWhenInUseUsageDescription": "Find clinic location",
-        "NSCalendarsUsageDescription": "Add appointments to calendar",
-        "UIBackgroundModes": ["remote-notification"]
+        "NSCalendarsUsageDescription": "Add appointments to calendar"
       }
     },
     "android": {
@@ -32,11 +31,7 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "WAKE_LOCK",
-        "POST_NOTIFICATIONS"
+        "WRITE_CALENDAR"
       ],
       "edgeToEdgeEnabled": true
     },
@@ -54,14 +49,6 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0891B2"
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#0891B2",
-          "defaultChannel": "default"
         }
       ]
     ],
